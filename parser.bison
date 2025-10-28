@@ -2,9 +2,14 @@
 %token 
   INT  
   PLUS
+  MINUS
+  TIMES
+  DIV
+  MOD
 
 // Operator associativity & precedence
-%left PLUS
+%left PLUS MINUS 
+%right TIMES DIV MOD
 
 // Root-level grammar symbol
 %start program;
@@ -30,7 +35,7 @@ extern int yyline;
 extern char* yytext;
 extern FILE* yyin;
 extern void yyerror(const char* msg);
-Expr* root;
+extern Expr* root;
 }
 
 %%
@@ -38,12 +43,28 @@ program: expr { root = $1; }
 
 expr: 
   INT { 
-    $$ = ast_integer($1); 
+    $$ = ast_integer($1);
   }
   | 
   expr PLUS expr { 
     $$ = ast_operation(PLUS, $1, $3); 
   } 
+  |
+  expr MINUS expr {
+    $$ = ast_operation(MINUS, $1, $3); 
+  } 
+  |
+  expr TIMES expr {
+    $$ = ast_operation(TIMES, $1, $3); 
+  }
+  |
+  expr DIV expr {
+    $$ = ast_operation(DIV, $1, $3); 
+  }
+  |
+  expr MOD expr {
+    $$ = ast_operation(MOD, $1, $3); 
+  }
   ;
 %%
 
