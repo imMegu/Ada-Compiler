@@ -3,6 +3,8 @@
 
 #include "ast.h"
 
+void printExpr(BoolExpr *expr);
+
 // Example output: ((3 + 5) * (10 - 2))
 void printExpr(Expr *expr);
 

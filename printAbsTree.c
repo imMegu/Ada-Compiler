@@ -2,6 +2,50 @@
 #include "ast.h"
 #include "parser.h"
 
+void printBool(BoolExpr *exp) {
+  if (exp == NULL) {
+    printf("NULL");
+    return;
+  }
+
+  if (exp->kind == B_INTEGER) {
+    printf("BOOL_INT(%d)", exp->attr.value);
+  } else if (exp->kind == B_RELATION) {
+    // Relational expressions are enclosed in brackets []
+    printf("[");
+    printExpr(
+        exp->attr.rel.left); // printExpr handles the arithmetic sub-expression
+
+    switch (exp->attr.rel.op) {
+    case EQ:
+      printf(" == ");
+      break;
+    case NE:
+      printf(" != ");
+      break;
+    case LT:
+      printf(" < ");
+      break;
+    case GT:
+      printf(" > ");
+      break;
+    case LE:
+      printf(" <= ");
+      break;
+    case GE:
+      printf(" >= ");
+      break;
+    default:
+      printf(" ? ");
+      break;
+    }
+
+    printExpr(
+        exp->attr.rel.right); // printExpr handles the other sub-expression
+    printf("]");
+  }
+}
+
 void printExpr(Expr *expr) {
   if (expr == NULL) {
     printf("NULL");
@@ -14,7 +58,7 @@ void printExpr(Expr *expr) {
     printf("(");
     printExpr(expr->attr.op.left);
 
-    switch (expr->attr.op.operator) {
+    switch (expr->attr.op.op) {
     case PLUS:
       printf(" + ");
       break;
@@ -54,7 +98,7 @@ void printExprTree(Expr *expr, int depth) {
     printf("INT: %d\n", expr->attr.value);
   } else if (expr->kind == E_OPERATION) {
     const char *opName;
-    switch (expr->attr.op.operator) {
+    switch (expr->attr.op.op) {
     case PLUS:
       opName = "PLUS";
       break;

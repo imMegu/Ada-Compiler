@@ -23,5 +23,11 @@ int yyline = 1;
 "*" { return TIMES; }
 "/" { return DIV; }
 "%" { return MOD; }
+"==" { return EQ; }
+"!=" { return NE; }
+"<"  { return LT; }
+">"  { return GT; }
+"<=" { return LE; }
+">=" { return GE; }
 .  { yyerror("unexpected character"); }
 %%

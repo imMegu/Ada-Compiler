@@ -6,8 +6,16 @@
   TIMES
   DIV
   MOD
+  EQ // ==
+  NE // !=
+  LT // <
+  GT // >
+  LE // <=
+  GE // >=
 
 // Operator associativity & precedence
+// lowest -> highest
+%left EQ NE LT GT LE GE
 %left PLUS MINUS 
 %left TIMES DIV MOD
 
@@ -17,11 +25,13 @@
 // Types/values in association to grammar symbols.
 %union {
   int intValue;
-  Expr* exprValue; 
+  Expr* exprValue;
+  BoolExpr* boolExprValue;
 }
 
 %type <intValue> INT
 %type <exprValue> expr
+%type <boolExprValue> boolExpr
 
 // Use "%code requires" to make declarations go
 // into both parser.c and parser.h
@@ -31,7 +41,9 @@
 #include "ast.h"
 
 int eval(Expr *expr);
+int evalBool(BoolExpr *expr);
 extern void printExpr(Expr *exp);
+extern void printBool(BoolExpr *exp);
 
 extern int yylex();
 extern int yyline;
@@ -42,14 +54,53 @@ extern void yyerror(const char* msg);
 
 %%
 program: /* empty */
-       | program expr { 
-           // Evaluate and print the result for the expression just parsed
-           printf("AST: ");
-           printExpr($2);
-           printf("\n");
-           printf("Result = %d\n", eval($2));
-         }
+       |
+program statement { }
        ;
+
+statement:
+  expr { 
+    // Action for arithmetic expression
+    printf("AST: ");
+    printExpr($1);
+    printf("\n");
+    printf("Result = %d\n", eval($1));
+  }
+  |
+  boolExpr {
+    // Action for boolean expression. eval() is for Expr, so we need a new evalBool()
+    printf("Bool AST: ");
+    printBool($1);
+    printf("\n");
+    printf("Bool Result = %d\n", evalBool($1)); 
+  }
+  ;
+
+boolExpr:
+  expr EQ expr {
+    $$ = ast_relation(EQ, $1, $3);
+  }
+  |
+  expr NE expr {
+    $$ = ast_relation(NE, $1, $3);
+  }
+  |
+  expr LT expr {
+    $$ = ast_relation(LT, $1, $3);
+  }
+  |
+  expr GT expr {
+    $$ = ast_relation(GT, $1, $3);
+  }
+  |
+  expr LE expr {
+    $$ = ast_relation(LE, $1, $3);
+  }
+  |
+  expr GE expr {
+    $$ = ast_relation(GE, $1, $3);
+  }
+  ;
 
 expr: 
   INT { 

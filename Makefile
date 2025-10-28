@@ -23,3 +23,5 @@ test: $(PROGRAM)
 	$(PROGRAM) example2.txt
 	$(PROGRAM) example3.txt
 	$(PROGRAM) example4.txt
+	$(PROGRAM) example5.txt
+	$(PROGRAM) example6.txt

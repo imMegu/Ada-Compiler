@@ -1,0 +1,20 @@
+# Arithmetic Expression: 20 + 3 * 10 = 50
+20 + 3 * 10
+
+# Comparison: (10 + 2) == 12 (TRUE)
+10 + 2 == 12
+
+# Comparison: (100 / 10) != (2 * 5) -> 10 != 10 (FALSE)
+100 / 10 != 2 * 5
+
+# Comparison: (1 + 1) < (3 * 3) -> 2 < 9 (TRUE)
+1 + 1 < 3 * 3
+
+# Comparison: (50 - 5) >= (9 * 5) -> 45 >= 45 (TRUE)
+50 - 5 >= 9 * 5
+
+# Comparison: (1 % 2) <= (100 / 50) -> 1 <= 2 (TRUE)
+1 % 2 <= 100 / 50
+
+# Comparison: 10 + 5 > 14 (TRUE)
+10 + 5 > 14
