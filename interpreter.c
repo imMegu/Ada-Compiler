@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include "parser.h"
 
-Expr *root;
-
 int eval(Expr *expr) {
   int result = 0;
   if (expr == 0) {
@@ -46,7 +44,9 @@ int main(int argc, char **argv) {
     }
   } //  yyin = stdin
   if (yyparse() == 0) {
-    printf("Result = %d\n", eval(root));
+    // The AST printing and Result evaluation now happen
+    // inside the parser's action for 'program expr'
+    printf("Parsing complete.\n");
   }
   return 0;
 }

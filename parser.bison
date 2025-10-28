@@ -9,7 +9,7 @@
 
 // Operator associativity & precedence
 %left PLUS MINUS 
-%right TIMES DIV MOD
+%left TIMES DIV MOD
 
 // Root-level grammar symbol
 %start program;
@@ -30,16 +30,26 @@
 #include <stdlib.h>
 #include "ast.h"
 
+int eval(Expr *expr);
+extern void printExpr(Expr *exp);
+
 extern int yylex();
 extern int yyline;
 extern char* yytext;
 extern FILE* yyin;
 extern void yyerror(const char* msg);
-extern Expr* root;
 }
 
 %%
-program: expr { root = $1; }
+program: /* empty */
+       | program expr { 
+           // Evaluate and print the result for the expression just parsed
+           printf("AST: ");
+           printExpr($2);
+           printf("\n");
+           printf("Result = %d\n", eval($2));
+         }
+       ;
 
 expr: 
   INT { 
