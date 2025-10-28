@@ -3,12 +3,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "scanner.h"
-// retirei mutas cenas de um codigo do stackoverflow, tenho de retificar alguns pontos ainda
+// achon que meti todos os tokens que era preciso mas precisamos dar uma revisão
 static int current = 0;
 static int line = 1;
 static const char* source;
-
-// Função para criar uma cópia do lexema
 static char* copyLexeme(const char* start, int length) {
     char* lexeme = (char*)malloc(length + 1);
     strncpy(lexeme, start, length);
@@ -46,15 +44,12 @@ Token makeToken(TokenType type, const char* lexeme, int line) {
     token.line = line;
     return token;
 }
-
 Token errorToken(const char* message) {
-    return makeToken(TOKEN_EOF, message, line);
+    return makeToken(TOKEN_EOF, message, line); // Pode usar um token especial para erro
 }
-
 static int isAlpha(char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
-
 static int isDigit(char c) {
     return c >= '0' && c <= '9';
 }
@@ -62,11 +57,15 @@ static int isDigit(char c) {
 // Função para criar token para identificadores ou palavras-chave
 static Token identifier() {
     int start = current - 1;
+
+
     while (isAlpha(peek()) || isDigit(peek())) advance();
+
+
     int length = current - start;
     char* text = copyLexeme(source + start, length);
 
-    // Verificar se é palavra-chave
+    // Verifica se é palavra-chave
     if (strcmp(text, "if") == 0) {
         free(text);
         return makeToken(TOKEN_IF, "if", line);
@@ -184,6 +183,7 @@ Token getNextToken() {
         case '+': return makeToken(TOKEN_PLUS, "+", line);
         case '-': return makeToken(TOKEN_MINUS, "-", line);
         case '*': return makeToken(TOKEN_MULTIPLY, "*", line);
+        case '/': return makeToken(TOKEN_DIVIDE, "/", line);
         case ';': return makeToken(TOKEN_SEMICOLON, ";", line);
         case ',': return makeToken(TOKEN_COMMA, ",", line);
         case '(': return makeToken(TOKEN_LPAREN, "(", line);
