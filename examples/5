@@ -7,6 +7,6 @@ begin
    d := 100 / 4;
    e := 17 rem 3;
 
-   Put_Line("Condition not met");
+   Put_Line(d);
    Put_Line(e);
 end Main;

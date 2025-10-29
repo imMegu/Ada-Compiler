@@ -1,0 +1,103 @@
+# Test 4: Comprehensive Test
+# Tests: All features - variables, arithmetic, conditionals, loops, I/O, strings
+
+procedure Main is
+  num1, num2, sum, product : Integer;
+  count, max : Integer;
+  isPositive, isEven : Boolean;
+  temp : Integer;
+begin
+  # Variable initialization and arithmetic
+  num1 := 15;
+  num2 := 4;
+  sum := num1 + num2;
+  product := num1 * num2;
+  
+  Put_Line "Sum:";
+  Put_Line sum;
+  Put_Line "Product:";
+  Put_Line product;
+  
+  # Division and modulo
+  temp := num1 / num2;
+  Put_Line "Division:";
+  Put_Line temp;
+  
+  temp := num1 rem num2;
+  Put_Line "Remainder:";
+  Put_Line temp;
+  
+  # Boolean operations and conditionals
+  isPositive := true;
+  if isPositive then
+    Put_Line "Number is positive";
+  end if;
+  
+  # Comparison operators
+  if num1 > num2 then
+    Put_Line "num1 is greater";
+  else
+    Put_Line "num2 is greater or equal";
+  end if;
+  
+  if num1 == 15 then
+    Put_Line "num1 equals 15";
+  end if;
+  
+  if num1 /= num2 then
+    Put_Line "Numbers are different";
+  end if;
+  
+  # While loop with nested conditionals
+  count := 1;
+  max := 10;
+  
+  while count <= max loop
+    isEven := false;
+    temp := count rem 2;
+    
+    if temp == 0 then
+      isEven := true;
+    end if;
+    
+    if isEven then
+      Put_Line count;
+    end if;
+    
+    count := count + 1;
+  end loop;
+  
+  # Get user input
+  Put_Line "Enter a number:";
+  Get_Line num1;
+  
+  # Process input
+  if num1 < 0 then
+    Put_Line "Negative number entered";
+    num1 := 0 - num1;
+  else
+    if num1 == 0 then
+      Put_Line "Zero entered";
+    else
+      Put_Line "Positive number entered";
+    end if;
+  end if;
+  
+  Put_Line "Final value:";
+  Put_Line num1;
+  
+  # Complex expression
+  temp := (num1 + num2) * 2 - num1 / 2;
+  Put_Line "Complex result:";
+  Put_Line temp;
+  
+  # Countdown loop
+  count := 5;
+  Put_Line "Countdown:";
+  while count > 0 loop
+    Put_Line count;
+    count := count - 1;
+  end loop;
+  
+  Put_Line "Done!";
+end Main;

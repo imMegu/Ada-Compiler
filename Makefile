@@ -24,7 +24,7 @@ test: $(PROGRAM)
 	done
 
 test%: $(PROGRAM)
-	@FILE=examples/example$*.txt; \
+	@FILE=examples/$*; \
 	if [ -f $$FILE ]; then \
 		echo "Running $$FILE..."; \
 		$(PROGRAM) $$FILE; \

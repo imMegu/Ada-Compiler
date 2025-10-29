@@ -141,16 +141,14 @@ void execCmd(Command *cmd) {
   case PUT_LINE_CMD:
     printf("OUTPUT: ");
     if (cmd->attr.putLine.value->kind == E_STRING) {
-      // Handle string output
       printf("%s\n", cmd->attr.putLine.value->attr.id);
     } else {
-      // Handle integer output
       printf("%d\n", eval(cmd->attr.putLine.value));
     }
     break;
 
   case GET_LINE_CMD:
-    printf("Enter value for %s: ", cmd->attr.getLine.id);
+    printf("INPUT {%s}: ", cmd->attr.getLine.id);
     int input_val;
     if (scanf("%d", &input_val) == 1) {
       set_var_value(cmd->attr.getLine.id, input_val);
