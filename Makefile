@@ -1,4 +1,3 @@
-
 OBJS=scanner.o parser.o ast.o interpreter.o printAbsTree.o
 INTERM=scanner.c parser.c parser.h
 PROGRAM=./interpreter
@@ -19,9 +18,16 @@ clean:
 	rm -f $(PROGRAM) $(OBJS) $(INTERM)
 
 test: $(PROGRAM)
-	$(PROGRAM) example1.txt
-	$(PROGRAM) example2.txt
-	$(PROGRAM) example3.txt
-	$(PROGRAM) example4.txt
-	$(PROGRAM) example5.txt
-	$(PROGRAM) example6.txt
+	@for f in examples/example*.txt; do \
+		echo "Running $$f..."; \
+		$(PROGRAM) $$f; \
+	done
+
+test%: $(PROGRAM)
+	@FILE=examples/example$*.txt; \
+	if [ -f $$FILE ]; then \
+		echo "Running $$FILE..."; \
+		$(PROGRAM) $$FILE; \
+	else \
+		echo "Test $$FILE not found."; \
+	fi

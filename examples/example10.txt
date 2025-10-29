@@ -1,0 +1,21 @@
+counter = 0;
+while (counter < 5) counter = counter + 1;
+# should make counter = 5
+
+# Loop with more complex body
+sum = 0;
+i = 1;
+while (i <= 10) {
+    sum = sum + i;
+    i = i + 1;
+}
+# sum = 55
+# i = 11
+
+n = 5;
+factorial = 1;
+while (n > 1) {
+    factorial = factorial * n;
+    n = n - 1;
+}
+# 5! = 120

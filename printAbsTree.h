@@ -18,6 +18,9 @@ void printExpr(Expr *expr);
  *       INT: 10
  *       INT: 2
  */
+
+void printCmd(Cmd *cmd);
+
 void printExprTree(Expr *expr, int depth);
 
 #endif /* PRINTABSTREE_H */

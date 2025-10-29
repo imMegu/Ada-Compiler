@@ -54,6 +54,8 @@ void printExpr(Expr *expr) {
 
   if (expr->kind == E_INTEGER) {
     printf("%d", expr->attr.value);
+  } else if (expr->kind == E_VAR) {
+    printf("%s", expr->attr.name);
   } else if (expr->kind == E_OPERATION) {
     printf("(");
     printExpr(expr->attr.op.left);
@@ -81,6 +83,55 @@ void printExpr(Expr *expr) {
 
     printExpr(expr->attr.op.right);
     printf(")");
+  }
+}
+
+void printCmd(Cmd *cmd) {
+  if (cmd == NULL) {
+    printf("NULL_CMD");
+    return;
+  }
+
+  switch (cmd->kind) {
+  case C_ASSIGN:
+    printf("(%s = ", cmd->attr.assign.var);
+    printExpr(cmd->attr.assign.expr);
+    printf(")");
+    break;
+
+  case C_SEQUENCE:
+    printf("(");
+    printCmd(cmd->attr.sequence.first);
+    printf(" ; ");
+    printCmd(cmd->attr.sequence.second);
+    printf(")");
+    break;
+
+  case C_IF_THEN:
+    printf("(if ");
+    printBool(cmd->attr.cond.cond);
+    printf(" then ");
+    printCmd(cmd->attr.cond.cmd_true);
+    printf(")");
+    break;
+
+  case C_IF:
+    printf("(if ");
+    printBool(cmd->attr.cond.cond);
+    printf(" then ");
+    printCmd(cmd->attr.cond.cmd_true);
+    printf(" else ");
+    printCmd(cmd->attr.cond.cmd_false);
+    printf(")");
+    break;
+
+  case C_WHILE:
+    printf("(while ");
+    printBool(cmd->attr.loop.cond);
+    printf(" do ");
+    printCmd(cmd->attr.loop.cmd);
+    printf(")");
+    break;
   }
 }
 

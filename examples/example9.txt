@@ -1,0 +1,12 @@
+x = 10;
+y = 20;
+
+# Basic if-then-else
+if (x > y) result = 1 else result = 0;
+
+# Nested if-then-else
+if (x < 15) {
+    if (y > 15) nested = 100 else nested = 50;
+} else {
+    nested = 0;
+}
