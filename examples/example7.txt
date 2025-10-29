@@ -1,5 +1,0 @@
-# Arithmetic precedence
-# Sequence of commands
-x = 5 + 3 * 2;
-y = x - 4;
-z = y / 2

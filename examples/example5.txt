@@ -1,26 +1,12 @@
-# Simple addition and multiplication
-10 + 5 * 2
+procedure Main is
+   a, b, c, d, e : Integer;
+begin
+   a := 10 + 5;
+   b := 20 - 8;
+   c := 6 * 7;
+   d := 100 / 4;
+   e := 17 rem 3;
 
-# Test equality (TRUE)
-12 == 12
-
-# Test inequality (TRUE)
-5 != 10
-
-# Test less than (TRUE)
-100 < 200
-
-# Test greater than (FALSE)
-50 > 500
-
-# Test less than or equal to (TRUE)
-7 <= 7
-
-# Test greater than or equal to (FALSE)
-99 >= 100
-
-# A bare integer as a boolean (TRUE)
-1
-
-# A bare integer as a boolean (FALSE)
-0
+   Put_Line("Condition not met");
+   Put_Line(e);
+end Main;

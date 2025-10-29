@@ -1,176 +1,185 @@
 #include <stdio.h>
-#include "ast.h"
+#include "printAbsTree.h"
 #include "parser.h"
 
-void printBool(BoolExpr *exp) {
-  if (exp == NULL) {
-    printf("NULL");
-    return;
-  }
+char *oprStr = NULL;
+int globalSpaces = 0;
 
-  if (exp->kind == B_INTEGER) {
-    printf("BOOL_INT(%d)", exp->attr.value);
-  } else if (exp->kind == B_RELATION) {
-    // Relational expressions are enclosed in brackets []
-    printf("[");
-    printExpr(
-        exp->attr.rel.left); // printExpr handles the arithmetic sub-expression
-
-    switch (exp->attr.rel.op) {
-    case EQ:
-      printf(" == ");
-      break;
-    case NE:
-      printf(" != ");
-      break;
-    case LT:
-      printf(" < ");
-      break;
-    case GT:
-      printf(" > ");
-      break;
-    case LE:
-      printf(" <= ");
-      break;
-    case GE:
-      printf(" >= ");
-      break;
-    default:
-      printf(" ? ");
-      break;
-    }
-
-    printExpr(
-        exp->attr.rel.right); // printExpr handles the other sub-expression
-    printf("]");
-  }
+void printSpaces(int spaces) {
+  for (int i = 0; i < spaces; i++)
+    printf(" ");
 }
 
-void printExpr(Expr *expr) {
-  if (expr == NULL) {
-    printf("NULL");
-    return;
-  }
-
-  if (expr->kind == E_INTEGER) {
-    printf("%d", expr->attr.value);
-  } else if (expr->kind == E_VAR) {
-    printf("%s", expr->attr.name);
-  } else if (expr->kind == E_OPERATION) {
-    printf("(");
-    printExpr(expr->attr.op.left);
-
-    switch (expr->attr.op.op) {
-    case PLUS:
-      printf(" + ");
-      break;
-    case MINUS:
-      printf(" - ");
-      break;
-    case TIMES:
-      printf(" * ");
-      break;
-    case DIV:
-      printf(" / ");
-      break;
-    case MOD:
-      printf(" %% ");
-      break;
-    default:
-      printf(" ? ");
-      break;
-    }
-
-    printExpr(expr->attr.op.right);
-    printf(")");
-  }
+void printid(char *id) {
+  printSpaces(globalSpaces);
+  printf("%s\n", id);
 }
 
-void printCmd(Cmd *cmd) {
-  if (cmd == NULL) {
-    printf("NULL_CMD");
-    return;
+void printArgs(Expr *expr) {
+  printExpr(expr);
+  printf(",");
+}
+
+char *getid(int op) {
+
+  if (oprStr == NULL) {
+    oprStr = malloc(sizeof(char) * 3);
   }
 
-  switch (cmd->kind) {
-  case C_ASSIGN:
-    printf("(%s = ", cmd->attr.assign.var);
-    printExpr(cmd->attr.assign.expr);
-    printf(")");
+  switch (op) {
+  case MINUS:
+    oprStr[0] = '-';
+    oprStr[1] = '\0';
     break;
-
-  case C_SEQUENCE:
-    printf("(");
-    printCmd(cmd->attr.sequence.first);
-    printf(" ; ");
-    printCmd(cmd->attr.sequence.second);
-    printf(")");
+  case PLUS:
+    oprStr[0] = '+';
+    oprStr[1] = '\0';
     break;
-
-  case C_IF_THEN:
-    printf("(if ");
-    printBool(cmd->attr.cond.cond);
-    printf(" then ");
-    printCmd(cmd->attr.cond.cmd_true);
-    printf(")");
+  case MULT:
+    oprStr[0] = '*';
+    oprStr[1] = '\0';
     break;
-
-  case C_IF:
-    printf("(if ");
-    printBool(cmd->attr.cond.cond);
-    printf(" then ");
-    printCmd(cmd->attr.cond.cmd_true);
-    printf(" else ");
-    printCmd(cmd->attr.cond.cmd_false);
-    printf(")");
+  case DIV:
+    oprStr[0] = '/';
+    oprStr[1] = '\0';
     break;
+  case MOD:
+    oprStr[0] = '%';
+    oprStr[1] = '\0';
+    break;
+  case GT:
+    oprStr[0] = '>';
+    oprStr[1] = '\0';
+    break;
+  case LT:
+    oprStr[0] = '<';
+    oprStr[1] = '\0';
+    break;
+  case EQ:
+    oprStr[0] = '=';
+    oprStr[1] = '=';
+    oprStr[2] = '\0';
+    break;
+  case NE:
+    oprStr[0] = '!';
+    oprStr[1] = '=';
+    oprStr[2] = '\0';
+    break;
+  case GE:
+    oprStr[0] = '>';
+    oprStr[1] = '=';
+    oprStr[2] = '\0';
+    break;
+  case LE:
+    oprStr[0] = '<';
+    oprStr[1] = '=';
+    oprStr[2] = '\0';
+    break;
+  default:
+    break;
+  }
 
-  case C_WHILE:
-    printf("(while ");
-    printBool(cmd->attr.loop.cond);
-    printf(" do ");
-    printCmd(cmd->attr.loop.cmd);
-    printf(")");
+  return oprStr;
+}
+
+void printExpr(Expr *expr) { printExprS(expr, globalSpaces); }
+
+void printExprS(Expr *expr, int spaces) {
+
+  switch (expr->kind) {
+
+  case E_INTEGER:
+    printSpaces(spaces);
+    printf("%d\n", expr->attr.value);
+    break;
+  case E_ID:
+    printSpaces(spaces);
+    printf("%s\n", expr->attr.id);
+    break;
+  case E_ID_ADDR:
+    printSpaces(spaces);
+    printf("& %s\n", expr->attr.id);
+    break;
+  case E_STRING:
+    printSpaces(spaces);
+    printf("\"%s\"\n", expr->attr.id);
+    break;
+  case E_BOOL_VALUE:
+    printSpaces(spaces);
+    printf("%s\n", expr->attr.value ? "TRUE" : "FALSE");
+    break;
+  case E_OPERATION:
+  case E_BOOL: {
+    printSpaces(spaces);
+
+    printf("%s\n", getid(expr->attr.op.op));
+
+    printExprS(expr->attr.op.left, spaces + 1);
+    printExprS(expr->attr.op.right, spaces + 1);
+    break;
+  }
+  case E_ASSIGNMENT:
+    printSpaces(spaces);
+    printf("%s\n", expr->attr.assignment.id);
+    printSpaces(spaces);
+    printf("=\n");
+    printExprS(expr->attr.assignment.value, spaces + 1);
     break;
   }
 }
 
-// Alternative: Print in tree format with indentation
-void printExprTree(Expr *expr, int depth) {
-  if (expr == NULL) {
-    return;
-  }
+void printCmdS(Command *cmd, int spaces) {
 
-  for (int i = 0; i < depth; i++) {
-    printf("  ");
-  }
+  switch (cmd->command) {
+  case EMPTY_CMD:
+    printSpaces(spaces);
+    printf("\n");
+    break;
+  case WHILE_CMD:
+    printSpaces(spaces);
+    printf("WHILE(\n");
+    printExprS(cmd->attr.whileCmd.expr, spaces + 1);
+    printSpaces(spaces);
+    printf(")\n");
+    printCmdS(cmd->attr.whileCmd.cmd, spaces);
+    break;
+  case IF_CMD:
+    printSpaces(spaces);
+    printf("IF\n");
+    printExprS(cmd->attr.ifCmd.expr, spaces + 1);
+    printCmdS(cmd->attr.ifCmd.cmd, spaces);
+    break;
+  case IF_ELSE_CMD:
+    printSpaces(spaces);
+    printf("IF\n");
+    printExprS(cmd->attr.ifElseCmd.expr, spaces + 1);
+    printCmdS(cmd->attr.ifElseCmd.cmd, spaces + 4);
+    printSpaces(spaces);
+    printf("ELSE\n");
+    printCmdS(cmd->attr.ifElseCmd.elsecmd, spaces + 4);
+    break;
+  case COMPOUND_CMD: {
+    int previousSpaces = globalSpaces;
+    globalSpaces = spaces;
 
-  if (expr->kind == E_INTEGER) {
-    printf("INT: %d\n", expr->attr.value);
-  } else if (expr->kind == E_OPERATION) {
-    const char *opName;
-    switch (expr->attr.op.op) {
-    case PLUS:
-      opName = "PLUS";
-      break;
-    case MINUS:
-      opName = "MINUS";
-      break;
-    case TIMES:
-      opName = "TIMES";
-      break;
-    case DIV:
-      opName = "DIV";
-      break;
-    case MOD:
-      opName = "MOD";
-      break;
-    default:
-      opName = "UNKNOWN";
-      break;
-    }
-    printf("OP: %s\n", opName);
-    printExprTree(expr->attr.op.left, depth + 1);
-    printExprTree(expr->attr.op.right, depth + 1);
+    iterateList(cmd->attr.compound.commands, (void (*)(void *))printCmd);
+    globalSpaces = previousSpaces;
+    break;
+  }
+  case EXPR_CMD:
+    printExprS(cmd->attr.value, spaces);
+    break;
+  case PUT_LINE_CMD:
+    printSpaces(spaces);
+    printf("OUTPUT: ");
+    printExprS(cmd->attr.putLine.value, spaces + 1);
+    printSpaces(spaces);
+    break;
+  case GET_LINE_CMD:
+    printSpaces(spaces);
+    printf("GET_LINE(%s)\n", cmd->attr.getLine.id);
+    break;
   }
 }
+
+void printCmd(Command *cmd) { printCmdS(cmd, globalSpaces); }

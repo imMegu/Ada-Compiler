@@ -1,0 +1,42 @@
+#ifndef LINKEDLIST_H
+#define LINKEDLIST_H
+
+struct _Node {
+
+  void *value;
+
+  struct _Node *next;
+};
+
+typedef struct _Node Node;
+
+struct _LinkedList {
+
+  Node *first, *last;
+
+  int size;
+};
+
+typedef struct _LinkedList LinkedList;
+
+LinkedList *mkEmptyList();
+
+LinkedList *mkList(void *value);
+
+void *getFirst(LinkedList *);
+
+void *getLast(LinkedList *);
+
+LinkedList *concatLists(LinkedList *list1, LinkedList *list2);
+
+LinkedList *concatLast(LinkedList *list, void *value);
+
+LinkedList *concatStart(void *value, LinkedList *list);
+
+LinkedList *dropLast(LinkedList *list);
+
+LinkedList *dropFirst(LinkedList *list);
+
+void iterateList(LinkedList *, void (*)(void *));
+
+#endif // LINKEDLIST_H

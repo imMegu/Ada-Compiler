@@ -1,51 +1,61 @@
 // Tokens
 %token 
   INT  
+  STR
   PLUS
   MINUS
-  TIMES
+  MULT
   DIV
   MOD
-  EQ // ==
-  NE // !=
-  LT // <
-  GT // >
-  LE // <=
-  GE // >=
-
-%token WHILE IF THEN ELSE ASSIGN SEMICOLON LBRACE RBRACE LPAREN RPAREN
-%token ID // For identifiers/variables
-
-// Solve ELSE conflict
-%expect 1
+  EQ NE LT GT LE GE
+  TRUE FALSE INT_TYPE BOOL_TYPE
+%token
+  WHILE  // WHILE
+  IF     // IF
+  THEN   // THEN
+  ELSE   // ELSE
+  LOOP   // LOOP
+  END    // END
+  ASSIGN // :=
+  SEMICOLON
+  LPAREN 
+  RPAREN
+%token 
+  ID // For identifiers/variables
+  PROCEDURE IS MAIN COLON COMMA BEG
+  GET_LINE PUT_LINE
 
 // Operator associativity & precedence
 // lowest -> highest
 %left EQ NE LT GT LE GE
 %left PLUS MINUS 
-%left TIMES DIV MOD
+%left MULT DIV MOD
 
 // Root-level grammar symbol
 %start program;
 
 // Types/values in association to grammar symbols.
+
 %union {
   int intValue;
+  int typeKind;
+  char *idValue, *strValue;
   Expr* exprValue;
-  BoolExpr* boolExprValue;
-  char *stringValue;
-// ID for token
-  Cmd* cmdValue;
+  Command* cmdValue;
+  LinkedList* cmdList;
+  LinkedList* idList;
 }
 
 %type <intValue> INT
-%type <stringValue> ID
+%type <idValue> ID
+%type <strValue> STR
 %type <exprValue> expr
-%type <boolExprValue> boolExpr
 %type <cmdValue> cmd
-%type <cmdValue> cmd_sequence
-%type <cmdValue> stmt
-%type <cmdValue> program
+%type <cmdList> cmd_list
+%type <idList> id_list
+%type <idList> decl
+%type <idList> decls
+%type <typeKind> type
 
 // Use "%code requires" to make declarations go
 // into both parser.c and parser.h
@@ -53,168 +63,196 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ast.h"
-
-int eval(Expr *expr);
-int evalBool(BoolExpr *expr);
-int execCmd(Cmd *cmd);
-extern void printExpr(Expr *exp);
-extern void printBool(BoolExpr *exp);
-extern void printCmd(Cmd *cmd);
+#include "linkedlist.h"
+#include "symboltable.h"
 
 extern int yylex();
 extern int yyline;
 extern char* yytext;
 extern FILE* yyin;
 extern void yyerror(const char* msg);
+
+extern Command *root;
 }
 
 %%
-program:
-  /* empty */
-  { $$ = NULL; }
-  | program stmt SEMICOLON {
-    $$ = ast_sequence($1, $2);
+program: 
+  PROCEDURE MAIN IS { symtab_enter_scope(); } decls BEG cmd_list END MAIN SEMICOLON {
+    root = ast_compound($7); // $7 is cmd_list now
+    symtab_exit_scope(); // Exit global scope after parsing
   }
-  | program stmt {
-    $$ = ast_sequence($1, $2);
-  }
-  ;
 
-stmt:
-  cmd { 
+decls:
+  decl decls {
+    $$ = concatLists($1, $2);
+  }
+  | 
+  decl {
     $$ = $1;
-    printf("CMD AST: ");
-    printCmd($1);
-    printf("\n");
-    execCmd($1);
   }
-  |
-  expr {
-    printf("AST: ");
-    printExpr($1);
-    printf("\n");
-    printf("Result = %d\n", eval($1));
-    $$ = NULL;
-  }
-  |
-  boolExpr {
-    printf("Bool AST: ");
-    printBool($1);
-    printf("\n");
-    printf("Bool Result = %d\n", evalBool($1));
-    $$ = NULL;
+  | 
+  {
+    $$ = mkEmptyList();
   }
   ;
 
-cmd_sequence:
-  /* empty */
-  { $$ = NULL; }
-  | cmd_sequence cmd SEMICOLON {
-    $$ = ($1 == NULL) ? $2 : ast_sequence($1, $2);
+decl:
+  id_list COLON type SEMICOLON {
+    // Iterate over the list of IDs ($1) and insert each into the symbol table
+    LinkedList *ids = $1;
+    Node *current = ids->first;
+    while (current != NULL) {
+      char *var_name = (char *)current->value;
+      if (symtab_insert(var_name, $3 == TYPE_INTEGER ? TYPE_INT : TYPE_BOOL) != 0) {
+        // Error handling for re-declaration (optional, but good practice)
+        yyerror("Variable already declared in this scope");
+      }
+      current = current->next;
+    }
+
+    $$ = $1;
   }
-  | cmd_sequence cmd {
-    // This allows for 'cmd1 cmd2' if you don't require SEMICOLON
-    $$ = ($1 == NULL) ? $2 : ast_sequence($1, $2);
+
+type:
+  INT_TYPE {
+    $$ = TYPE_INTEGER; // Returns an integer constant/enum value
+  }
+  |
+  BOOL_TYPE {
+    $$ = TYPE_BOOLEAN; // Returns a different integer constant/enum value
+  }
+  ;
+id_list:
+  ID {
+    $$ = mkList($1);
+  }
+  | 
+  ID COMMA id_list {
+    $$ = concatStart($1, $3);
   }
   ;
 
-cmd: 
-  ID ASSIGN expr {
-    // x = 5 + y
-    $$ = ast_assign($1, $3);
-    // Cleanup the string value from the ID token
-    free($1); 
+cmd_list:
+  cmd cmd_list {
+    $$ = concatStart($1, $2);
   }
   |
-  IF LPAREN boolExpr RPAREN cmd %prec THEN {
-    // if ( B ) cmd
-    $$ = ast_if($3, $5, NULL);
+  cmd {
+    $$ = mkList($1);
   }
   |
-  IF LPAREN boolExpr RPAREN cmd ELSE cmd {
-    // if ( B ) cmd1 else cmd2
-    $$ = ast_if($3, $5, $7);
-  }
-  |
-  WHILE LPAREN boolExpr RPAREN cmd {
-    // while ( B ) cmd
-    $$ = ast_while($3, $5);
-  }
-  |
-  LPAREN cmd RPAREN {
-    // Grouping of commands: ( c1 ; c2 )
-    $$ = $2;
-  }
-  |
-  LBRACE cmd_sequence RBRACE {
-    // Command block: { cmd1 ; cmd2 ... }
-    // The 'program' non-terminal handles the sequence of commands
-    $$ = $2;
+  {
+    $$ = mkEmptyList();
   }
   ;
 
-boolExpr:
-  expr EQ expr {
-    $$ = ast_relation(EQ, $1, $3);
+cmd:
+  ID ASSIGN expr SEMICOLON {
+    if (symtab_lookup($1) == NULL) { // Check if ID is declared
+      yyerror("Undeclared variable in assignment");
+    }
+    $$ = ast_expr(ast_assignment($1, $3));
   }
   |
-  expr NE expr {
-    $$ = ast_relation(NE, $1, $3);
+  IF expr THEN cmd_list END IF SEMICOLON {
+    Command *body = ast_compound($4);
+    $$ = ast_if($2, body);
+  }
+  |  
+  IF expr THEN cmd_list ELSE cmd_list END IF SEMICOLON {
+    Command *if_body = ast_compound($4);
+    Command *else_body = ast_compound($6);
+    $$ = ast_if_then_else($2, if_body, else_body);
   }
   |
-  expr LT expr {
-    $$ = ast_relation(LT, $1, $3);
+  WHILE expr LOOP cmd_list END LOOP SEMICOLON {
+    Command *body = ast_compound($4);
+    $$ = ast_while($2, body);
   }
   |
-  expr GT expr {
-    $$ = ast_relation(GT, $1, $3);
+  PUT_LINE expr SEMICOLON {
+    $$ = ast_put_line($2);
   }
   |
-  expr LE expr {
-    $$ = ast_relation(LE, $1, $3);
+  GET_LINE ID SEMICOLON {
+    if (symtab_lookup($2) == NULL) { // Check if ID is declared
+      yyerror("Undeclared variable in Get_Line");
+    }
+    $$ = ast_get_line($2);
   }
-  |
-  expr GE expr {
-    $$ = ast_relation(GE, $1, $3);
-  }
-  ;
-
-expr: 
-  INT { 
+ ;
+expr:
+  INT {
     $$ = ast_integer($1);
   }
   |
   ID {
-    $$ = ast_variable($1);
-    free($1);
+    if (symtab_lookup($1) == NULL) {
+      yyerror("Undeclared variable in expression");
+    }
+    $$ = ast_id($1);
   }
   |
-  LPAREN expr RPAREN {
-    // Expression grouping: ( expr )
-    $$ = $2;
+  STR {
+    $$ = ast_string($1);
   }
   |
-  expr PLUS expr { 
-    $$ = ast_operation(PLUS, $1, $3); 
-  } 
+  TRUE {
+    $$ = ast_bool(1);
+  }
   |
-  expr MINUS expr {
-    $$ = ast_operation(MINUS, $1, $3); 
-  } 
+  FALSE {
+    $$ = ast_bool(0);
+  }
   |
-  expr TIMES expr {
-    $$ = ast_operation(TIMES, $1, $3); 
+  expr PLUS expr {
+    $$ = ast_operation(PLUS, $1, $3);
+  }
+  |
+  expr MULT expr {
+    $$ = ast_operation(MULT, $1, $3);
   }
   |
   expr DIV expr {
-    $$ = ast_operation(DIV, $1, $3); 
+    $$ = ast_operation(DIV, $1, $3);
+  }
+  |
+  expr MINUS expr {
+    $$ = ast_operation(MINUS, $1, $3);
   }
   |
   expr MOD expr {
-    $$ = ast_operation(MOD, $1, $3); 
+    $$ = ast_operation(MOD, $1, $3);
+  } 
+  |
+  expr GT expr {
+    $$ = ast_binary(GT, $1, $3);
+  }
+  |
+  expr LT expr {
+    $$ = ast_binary(LT, $1, $3);
+  }
+  |
+  expr EQ expr {
+    $$ = ast_binary(EQ, $1, $3);
+  }
+  |
+  expr NE expr {
+    $$ = ast_binary(NE, $1, $3);
+  }
+  |
+  expr GE expr {
+    $$ = ast_binary(GE, $1, $3);
+  }
+  |
+  expr LE expr {
+    $$ = ast_binary(LE, $1, $3);
+  }
+  |
+  LPAREN expr RPAREN {
+    $$ = $2;
   }
   ;
-
 %%
 
 void yyerror(const char* err) {

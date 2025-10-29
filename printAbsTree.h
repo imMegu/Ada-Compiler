@@ -3,24 +3,12 @@
 
 #include "ast.h"
 
-void printExpr(BoolExpr *expr);
+void printExpr(Expr *);
 
-// Example output: ((3 + 5) * (10 - 2))
-void printExpr(Expr *expr);
+void printExprS(Expr *, int);
 
-/*
- * Example output:
- *   OP: TIMES
- *     OP: PLUS
- *       INT: 3
- *       INT: 5
- *     OP: MINUS
- *       INT: 10
- *       INT: 2
- */
+void printCmd(Command *);
 
-void printCmd(Cmd *cmd);
-
-void printExprTree(Expr *expr, int depth);
+void printCmdS(Command *, int);
 
 #endif /* PRINTABSTREE_H */
