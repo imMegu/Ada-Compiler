@@ -155,7 +155,7 @@ cmd:
     $$ = ast_expr(ast_assignment($1, $3));
   }
   |
-  /* --- MUDANÇA: Regras IF/IF_ELSE substituídas por if_statement --- */
+  // MUDANÇA: Regras IF/IF_ELSE substituídas por if_statement 
   if_statement SEMICOLON { 
     $$ = $1;
   }
