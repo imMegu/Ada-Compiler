@@ -35,8 +35,9 @@ int yyline = 1;
 
 "while" { return WHILE; }
 "if"    { return IF; }
-"then"    { return THEN; }
+"then"  { return THEN; }
 "else"  { return ELSE; }
+"elsif" { return ELSIF; } // ADCIONEI AQUI ISTO DAVID
 "loop"  { return LOOP; }
 "end"   { return END; }
 
@@ -62,13 +63,12 @@ int yyline = 1;
 
 \".*\" {
   yylval.strValue = strdup(yytext);
-
   return STR;
 }
 
 [a-zA-Z][0-9a-zA-Z\_]* {
   yylval.idValue = strdup(yytext); 
-  return ID; 
+  return ID;
 }
 
 .  { yyerror("unexpected character"); }
