@@ -14,6 +14,7 @@
   IF     // IF
   THEN   // THEN
   ELSE   // ELSE
+  ELSIF  // <-- MUDANÇA: Token ELSIF Adicionado
   LOOP   // LOOP
   END    // END
   ASSIGN // :=
@@ -51,6 +52,8 @@
 %type <strValue> STR
 %type <exprValue> expr
 %type <cmdValue> cmd
+%type <cmdValue> if_statement // FIZ MUDANÇA: Novo %type
+%type <cmdValue> if_tail      //  FIZ MUDANÇA: Novo %type
 %type <cmdList> cmd_list
 %type <idList> id_list
 %type <idList> decl
@@ -81,7 +84,7 @@ program:
     root = ast_compound($7); // $7 is cmd_list now
     symtab_exit_scope(); // Exit global scope after parsing
   }
-
+// Podiamos alterar isto para deixar a gramática mais limpa mas o codigo está funcional
 decls:
   decl decls {
     $$ = concatLists($1, $2);
@@ -131,18 +134,16 @@ id_list:
     $$ = concatStart($1, $3);
   }
   ;
-
+// david alterei isto porque assim  não há ambiguidade
 cmd_list:
-  cmd cmd_list {
-    $$ = concatStart($1, $2);
-  }
-  |
-  cmd {
-    $$ = mkList($1);
-  }
-  |
+  // Uma lista de comandos pode estar vazia 
   {
     $$ = mkEmptyList();
+  }
+  |
+  //Ou pode ser uma lista, seguida por mais um comando 
+  cmd_list cmd {
+    $$ = concatLast($1, $2);
   }
   ;
 
@@ -154,15 +155,9 @@ cmd:
     $$ = ast_expr(ast_assignment($1, $3));
   }
   |
-  IF expr THEN cmd_list END IF SEMICOLON {
-    Command *body = ast_compound($4);
-    $$ = ast_if($2, body);
-  }
-  |  
-  IF expr THEN cmd_list ELSE cmd_list END IF SEMICOLON {
-    Command *if_body = ast_compound($4);
-    Command *else_body = ast_compound($6);
-    $$ = ast_if_then_else($2, if_body, else_body);
+  /* --- MUDANÇA: Regras IF/IF_ELSE substituídas por if_statement --- */
+  if_statement SEMICOLON { 
+    $$ = $1;
   }
   |
   WHILE expr LOOP cmd_list END LOOP SEMICOLON {
@@ -181,6 +176,53 @@ cmd:
     $$ = ast_get_line($2);
   }
  ;
+
+//FIZ AQUI A MUDANÇA: Novas regras para IF/ELSIF/ELSE 
+if_statement:
+  IF expr THEN cmd_list if_tail {
+    Command *if_body = ast_compound($4);
+    Command *else_block = $5; // $5 é o resultado de if_tail
+
+    if (else_block == NULL) {
+      // Não há else nem elsif
+      $$ = ast_if($2, if_body); 
+    } else {
+      // Há um else ou um elsif (que é tratado como um else)
+      $$ = ast_if_then_else($2, if_body, else_block);
+    }
+  }
+;
+
+if_tail:
+  END IF {
+    $$ = NULL; // Fim da cadeia, sem else
+  }
+  |
+  ELSE cmd_list END IF {
+    $$ = ast_compound($2); // Bloco ELSE final
+  }
+  |
+  ELSIF expr THEN cmd_list if_tail {
+    // ELSEIF NEW IMPLEMENT
+
+    Command *elsif_body = ast_compound($4);
+    Command *next_tail = $5; // O resto da cadeia (outro elsif ou else)
+    Command *inner_if;
+
+    if (next_tail == NULL) {
+      // Este ELSIF não é seguido por mais nada
+      inner_if = ast_if($2, elsif_body);
+    } else {
+      // Este ELSIF é seguido por outro elsif/else
+      inner_if = ast_if_then_else($2, elsif_body, next_tail);
+    }
+    
+    // Devolvemos o 'inner_if' como se fosse um bloco ELSE
+    $$ = inner_if;
+  }
+;
+//Acabei a alteração
+
 expr:
   INT {
     $$ = ast_integer($1);
