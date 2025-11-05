@@ -16,12 +16,10 @@ begin
         B := C;
         I := I + 1;
     end loop;
-  else 
-     if (N == 1) then 
-       B := 1;
-     else
-       B := 0;
-     end if;
+  elsif (N == 1) then 
+    B := 1;
+  else
+    B := 0;
   end if;
 
   Put_Line("Should be 1836311903");

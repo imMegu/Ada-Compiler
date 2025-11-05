@@ -9,7 +9,7 @@ scanner.c: scanner.flex parser.h
 	flex -o scanner.c scanner.flex
 
 parser.c parser.h: parser.bison
-	bison --defines=parser.h -o parser.c parser.bison
+	bison -Wcounterexample --defines=parser.h -o parser.c parser.bison
 
 $(PROGRAM): $(OBJS)
 	$(CC) -o $(PROGRAM) $(OBJS)

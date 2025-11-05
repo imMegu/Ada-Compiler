@@ -37,7 +37,7 @@ int yyline = 1;
 "if"    { return IF; }
 "then"  { return THEN; }
 "else"  { return ELSE; }
-"elsif" { return ELSIF; } // ADCIONEI AQUI ISTO DAVID
+"elsif" { return ELSIF; }
 "loop"  { return LOOP; }
 "end"   { return END; }
 

@@ -14,7 +14,7 @@
   IF     // IF
   THEN   // THEN
   ELSE   // ELSE
-  ELSIF  // <-- MUDANÇA: Token ELSIF Adicionado
+  ELSIF  // ELSIF
   LOOP   // LOOP
   END    // END
   ASSIGN // :=
@@ -52,11 +52,9 @@
 %type <strValue> STR
 %type <exprValue> expr
 %type <cmdValue> cmd
-%type <cmdValue> if_statement // FIZ MUDANÇA: Novo %type
-%type <cmdValue> if_tail      //  FIZ MUDANÇA: Novo %type
+%type <cmdValue> if_tail
 %type <cmdList> cmd_list
 %type <idList> id_list
-%type <idList> decl
 %type <idList> decls
 %type <typeKind> type
 
@@ -84,37 +82,27 @@ program:
     root = ast_compound($7); // $7 is cmd_list now
     symtab_exit_scope(); // Exit global scope after parsing
   }
-// Podiamos alterar isto para deixar a gramática mais limpa mas o codigo está funcional
+
 decls:
-  decl decls {
-    $$ = concatLists($1, $2);
-  }
-  | 
-  decl {
-    $$ = $1;
-  }
-  | 
-  {
+  /* empty */ {
     $$ = mkEmptyList();
   }
-  ;
-
-decl:
-  id_list COLON type SEMICOLON {
-    // Iterate over the list of IDs ($1) and insert each into the symbol table
-    LinkedList *ids = $1;
+  |
+  decls id_list COLON type SEMICOLON {
+    // Iterate over the list of IDs and insert each into the symbol table
+    LinkedList *ids = $2;
     Node *current = ids->first;
     while (current != NULL) {
       char *var_name = (char *)current->value;
-      if (symtab_insert(var_name, $3 == TYPE_INTEGER ? TYPE_INT : TYPE_BOOL) != 0) {
-        // Error handling for re-declaration (optional, but good practice)
+      if (symtab_insert(var_name, $4 == TYPE_INTEGER ? TYPE_INT : TYPE_BOOL) != 0) {
         yyerror("Variable already declared in this scope");
       }
       current = current->next;
     }
-
-    $$ = $1;
-  }
+    
+    $$ = concatLists($1, $2);
+  } 
+  ;
 
 type:
   INT_TYPE {
@@ -134,7 +122,7 @@ id_list:
     $$ = concatStart($1, $3);
   }
   ;
-// david alterei isto porque assim  não há ambiguidade
+
 cmd_list:
   // Uma lista de comandos pode estar vazia 
   {
@@ -155,9 +143,17 @@ cmd:
     $$ = ast_expr(ast_assignment($1, $3));
   }
   |
-  // MUDANÇA: Regras IF/IF_ELSE substituídas por if_statement 
-  if_statement SEMICOLON { 
-    $$ = $1;
+  IF expr THEN cmd_list if_tail SEMICOLON { 
+    Command *if_body = ast_compound($4);
+    Command *else_block = $5; // $5 é o resultado de if_tail
+
+    if (else_block == NULL) {
+      // Não há else nem elsif
+      $$ = ast_if($2, if_body); 
+    } else {
+      // Há um else ou um elsif (que é tratado como um else)
+      $$ = ast_if_then_else($2, if_body, else_block);
+    }
   }
   |
   WHILE expr LOOP cmd_list END LOOP SEMICOLON {
@@ -177,22 +173,6 @@ cmd:
   }
  ;
 
-//FIZ AQUI A MUDANÇA: Novas regras para IF/ELSIF/ELSE 
-if_statement:
-  IF expr THEN cmd_list if_tail {
-    Command *if_body = ast_compound($4);
-    Command *else_block = $5; // $5 é o resultado de if_tail
-
-    if (else_block == NULL) {
-      // Não há else nem elsif
-      $$ = ast_if($2, if_body); 
-    } else {
-      // Há um else ou um elsif (que é tratado como um else)
-      $$ = ast_if_then_else($2, if_body, else_block);
-    }
-  }
-;
-
 if_tail:
   END IF {
     $$ = NULL; // Fim da cadeia, sem else
@@ -203,10 +183,9 @@ if_tail:
   }
   |
   ELSIF expr THEN cmd_list if_tail {
-    // ELSEIF NEW IMPLEMENT
 
     Command *elsif_body = ast_compound($4);
-    Command *next_tail = $5; // O resto da cadeia (outro elsif ou else)
+    Command *next_tail = $5; 
     Command *inner_if;
 
     if (next_tail == NULL) {
@@ -221,7 +200,6 @@ if_tail:
     $$ = inner_if;
   }
 ;
-//Acabei a alteração
 
 expr:
   INT {
