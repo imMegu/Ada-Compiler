@@ -1,0 +1,5 @@
+procedure Main is
+   f : Boolean;
+begin
+  Get_Line(a);
+end Main;

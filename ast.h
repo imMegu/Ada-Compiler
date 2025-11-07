@@ -19,6 +19,8 @@ struct _Expr {
     E_ASSIGNMENT, // b := a
   } kind;
 
+  enum TypeKind type;
+
   union {
     int value; // for integer values
     char *id;  // for id value

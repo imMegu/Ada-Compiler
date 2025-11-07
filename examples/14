@@ -1,0 +1,8 @@
+procedure Main is 
+  x : Integer; 
+  y : Boolean; 
+begin 
+  x := 5; 
+  y := true; 
+  x := x rem y; 
+end Main;

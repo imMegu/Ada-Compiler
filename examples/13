@@ -1,0 +1,9 @@
+procedure Main is
+   a : Boolean;
+   b : Integer;
+begin
+   a := true;
+   b := 3;
+
+   Put_Line(a + b);
+end Main;

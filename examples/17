@@ -1,0 +1,8 @@
+procedure Main is
+   x : Integer;
+begin
+   x := 5;
+   if x then
+      Put_Line(1);
+   end if;
+end Main;

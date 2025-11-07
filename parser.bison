@@ -72,6 +72,7 @@ extern int yyline;
 extern char* yytext;
 extern FILE* yyin;
 extern void yyerror(const char* msg);
+extern void semantic_error(const char* msg);
 
 extern Command *root;
 }
@@ -95,7 +96,10 @@ decls:
     while (current != NULL) {
       char *var_name = (char *)current->value;
       if (symtab_insert(var_name, $4 == TYPE_INTEGER ? TYPE_INT : TYPE_BOOL) != 0) {
-        yyerror("Variable already declared in this scope");
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg), "Variable '%s' already declared in this scope", var_name);
+        semantic_error(error_msg);
+        exit(1);
       }
       current = current->next;
     }
@@ -137,13 +141,40 @@ cmd_list:
 
 cmd:
   ID ASSIGN expr SEMICOLON {
-    if (symtab_lookup($1) == NULL) { // Check if ID is declared
-      yyerror("Undeclared variable in assignment");
+    if (symtab_lookup($1) == NULL) {
+      char error_msg[256];
+      snprintf(error_msg, sizeof(error_msg), "Undeclared variable '%s' in assignment", $1);
+      semantic_error(error_msg);
+      exit(1);
     }
+
+    enum TypeKind var_type = symtab_lookup($1)->type; 
+    enum TypeKind expr_type = $3->type;
+    
+    if (var_type != expr_type) {
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg), 
+                 "Type Mismatch: Cannot assign expression of type %s to variable '%s' of type %s.", 
+                 (expr_type == TYPE_INTEGER ? "Integer" : "Boolean"),
+                 $1,
+                 (var_type == TYPE_INTEGER ? "Integer" : "Boolean"));
+        semantic_error(error_msg);
+        exit(1);
+    }
+
     $$ = ast_expr(ast_assignment($1, $3));
   }
   |
   IF expr THEN cmd_list if_tail SEMICOLON { 
+    if ($2->type != TYPE_BOOLEAN) {
+      char error_msg[256];
+      snprintf(error_msg, sizeof(error_msg), 
+               "Type Mismatch: IF condition must be Boolean, got %s",
+               ($2->type == TYPE_INTEGER ? "Integer" : "Unknown"));
+      semantic_error(error_msg);
+      exit(1);
+    }
+
     Command *if_body = ast_compound($4);
     Command *else_block = $5; // $5 é o resultado de if_tail
 
@@ -161,15 +192,18 @@ cmd:
     $$ = ast_while($2, body);
   }
   |
-  PUT_LINE expr SEMICOLON {
-    $$ = ast_put_line($2);
+  PUT_LINE LPAREN expr RPAREN SEMICOLON {
+    $$ = ast_put_line($3);
   }
   |
-  GET_LINE ID SEMICOLON {
-    if (symtab_lookup($2) == NULL) { // Check if ID is declared
-      yyerror("Undeclared variable in Get_Line");
+  GET_LINE LPAREN ID RPAREN SEMICOLON {
+    if (symtab_lookup($3) == NULL) { // Check if ID is declared
+      char error_msg[256];
+      snprintf(error_msg, sizeof(error_msg), "Undeclared variable '%s' in Get_Line", $3);
+      semantic_error(error_msg);
+      exit(1);
     }
-    $$ = ast_get_line($2);
+    $$ = ast_get_line($3);
   }
  ;
 
@@ -183,6 +217,14 @@ if_tail:
   }
   |
   ELSIF expr THEN cmd_list if_tail {
+    if ($2->type != TYPE_BOOLEAN) {
+      char error_msg[256];
+      snprintf(error_msg, sizeof(error_msg), 
+               "Type Mismatch: ELSIF condition must be Boolean, got %s",
+               ($2->type == TYPE_INTEGER ? "Integer" : "Unknown"));
+      semantic_error(error_msg);
+      exit(1);
+    }
 
     Command *elsif_body = ast_compound($4);
     Command *next_tail = $5; 
@@ -204,69 +246,108 @@ if_tail:
 expr:
   INT {
     $$ = ast_integer($1);
+    $$->type = TYPE_INTEGER;
   }
   |
   ID {
-    if (symtab_lookup($1) == NULL) {
-      yyerror("Undeclared variable in expression");
+    Symbol *symbol = symtab_lookup($1);
+    if (symbol == NULL) {
+      char error_msg[256];
+      snprintf(error_msg, sizeof(error_msg), "Undeclared variable '%s' in expression", $1);
+      semantic_error(error_msg);
+      exit(1);
     }
     $$ = ast_id($1);
+    $$->type = symbol->type; 
   }
-  |
+  |  
   STR {
     $$ = ast_string($1);
   }
   |
   TRUE {
     $$ = ast_bool(1);
+    $$->type = TYPE_BOOLEAN;
   }
   |
   FALSE {
     $$ = ast_bool(0);
+    $$->type = TYPE_BOOLEAN;
   }
   |
   expr PLUS expr {
+    if ($1->type != TYPE_INTEGER || $3->type != TYPE_INTEGER) {
+        semantic_error("Type Mismatch: '+' operation requires Integer operands.");
+        exit(1);
+    }
     $$ = ast_operation(PLUS, $1, $3);
+    $$->type = TYPE_INTEGER;
   }
   |
   expr MULT expr {
+    if ($1->type != TYPE_INTEGER || $3->type != TYPE_INTEGER) {
+        semantic_error("Type Mismatch: '*' operation requires Integer operands.");
+        exit(1);
+    }
     $$ = ast_operation(MULT, $1, $3);
+    $$->type = TYPE_INTEGER;
   }
   |
   expr DIV expr {
+    if ($1->type != TYPE_INTEGER || $3->type != TYPE_INTEGER) {
+        semantic_error("Type Mismatch: '/' operation requires Integer operands.");
+        exit(1);
+    }
     $$ = ast_operation(DIV, $1, $3);
+    $$->type = TYPE_INTEGER;
   }
   |
   expr MINUS expr {
+    if ($1->type != TYPE_INTEGER || $3->type != TYPE_INTEGER) {
+        semantic_error("Type Mismatch: '-' operation requires Integer operands.");
+        exit(1);
+    }
     $$ = ast_operation(MINUS, $1, $3);
+    $$->type = TYPE_INTEGER;
   }
   |
   expr MOD expr {
+    if ($1->type != TYPE_INTEGER || $3->type != TYPE_INTEGER) {
+        semantic_error("Type Mismatch: 'rem' operation requires Integer operands.");
+        exit(1);
+    }
     $$ = ast_operation(MOD, $1, $3);
+    $$->type = TYPE_INTEGER;
   } 
   |
   expr GT expr {
     $$ = ast_binary(GT, $1, $3);
+    $$->type = TYPE_BOOLEAN;
   }
   |
   expr LT expr {
     $$ = ast_binary(LT, $1, $3);
+    $$->type = TYPE_BOOLEAN;
   }
   |
   expr EQ expr {
     $$ = ast_binary(EQ, $1, $3);
+    $$->type = TYPE_BOOLEAN;
   }
   |
   expr NE expr {
     $$ = ast_binary(NE, $1, $3);
+    $$->type = TYPE_BOOLEAN;
   }
   |
   expr GE expr {
     $$ = ast_binary(GE, $1, $3);
+    $$->type = TYPE_BOOLEAN;
   }
   |
   expr LE expr {
     $$ = ast_binary(LE, $1, $3);
+    $$->type = TYPE_BOOLEAN;
   }
   |
   LPAREN expr RPAREN {
@@ -277,4 +358,8 @@ expr:
 
 void yyerror(const char* err) {
   printf("Line %d: %s - '%s'\n", yyline, err, yytext  );
+}
+
+void semantic_error(const char* err) {
+  printf("Line %d: %s\n", yyline, err);
 }

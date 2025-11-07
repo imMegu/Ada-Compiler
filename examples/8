@@ -9,9 +9,9 @@ procedure Main is
   divisor, count : Integer;
 begin
   # ===== FACTORIAL CALCULATION =====
-  Put_Line "=== Factorial ===";
-  Put_Line "Enter a number for factorial:";
-  Get_Line n;
+  Put_Line("=== Factorial ===");
+  Put_Line("Enter a number for factorial:");
+  Get_Line(n);
   
   result := 1;
   i := 1;
@@ -21,21 +21,21 @@ begin
     i := i + 1;
   end loop;
   
-  Put_Line "Factorial result:";
-  Put_Line result;
+  Put_Line("Factorial result:");
+  Put_Line(result);
   
   # ===== FIBONACCI SEQUENCE =====
-  Put_Line "=== Fibonacci ===";
-  Put_Line "Enter how many Fibonacci numbers:";
-  Get_Line n;
+  Put_Line("=== Fibonacci ===");
+  Put_Line("Enter how many Fibonacci numbers:");
+  Get_Line(n);
   
   a := 0;
   b := 1;
   i := 0;
   
-  Put_Line "Fibonacci sequence:";
+  Put_Line("Fibonacci sequence:");
   while i < n loop
-    Put_Line a;
+    Put_Line(a);
     temp := a + b;
     a := b;
     b := temp;
@@ -43,11 +43,11 @@ begin
   end loop;
   
   # ===== GREATEST COMMON DIVISOR (Euclidean Algorithm) =====
-  Put_Line "=== GCD ===";
-  Put_Line "Enter first number:";
-  Get_Line num1;
-  Put_Line "Enter second number:";
-  Get_Line num2;
+  Put_Line("=== GCD ===");
+  Put_Line("Enter first number:");
+  Get_Line(num1);
+  Put_Line("Enter second number:");
+  Get_Line(num2);
   
   while num2 /= 0 loop
     temp := num2;
@@ -56,13 +56,13 @@ begin
   end loop;
   
   gcd := num1;
-  Put_Line "GCD result:";
-  Put_Line gcd;
+  Put_Line("GCD result:");
+  Put_Line(gcd);
   
   # ===== PRIME NUMBER CHECKER =====
-  Put_Line "=== Prime Checker ===";
-  Put_Line "Enter a number to check if prime:";
-  Get_Line n;
+  Put_Line("=== Prime Checker ===");
+  Put_Line("Enter a number to check if prime:");
+  Get_Line(n);
   
   count := 0;
   
@@ -79,15 +79,15 @@ begin
   end if;
   
   if count == 0 then
-    Put_Line "Number is prime";
+    Put_Line("Number is prime");
   else
-    Put_Line "Number is not prime";
+    Put_Line("Number is not prime");
   end if;
   
   # ===== SUM OF DIGITS =====
-  Put_Line "=== Sum of Digits ===";
-  Put_Line "Enter a number:";
-  Get_Line n;
+  Put_Line("=== Sum of Digits ===");
+  Put_Line("Enter a number:");
+  Get_Line(n);
   
   result := 0;
   while n > 0 loop
@@ -95,13 +95,13 @@ begin
     n := n / 10;
   end loop;
   
-  Put_Line "Sum of digits:";
-  Put_Line result;
+  Put_Line("Sum of digits:");
+  Put_Line(result);
   
   # ===== REVERSE A NUMBER =====
-  Put_Line "=== Reverse Number ===";
-  Put_Line "Enter a number to reverse:";
-  Get_Line n;
+  Put_Line("=== Reverse Number ===");
+  Put_Line("Enter a number to reverse:");
+  Get_Line(n);
   
   result := 0;
   while n > 0 loop
@@ -109,13 +109,13 @@ begin
     n := n / 10;
   end loop;
   
-  Put_Line "Reversed number:";
-  Put_Line result;
+  Put_Line("Reversed number:");
+  Put_Line(result);
   
   # ===== COUNT PRIMES UP TO N =====
-  Put_Line "=== Count Primes ===";
-  Put_Line "Enter upper limit:";
-  Get_Line n;
+  Put_Line("=== Count Primes ===");
+  Put_Line("Enter upper limit:");
+  Get_Line(n);
   
   count := 0;
   num1 := 2;
@@ -138,15 +138,15 @@ begin
     num1 := num1 + 1;
   end loop;
   
-  Put_Line "Number of primes:";
-  Put_Line count;
+  Put_Line("Number of primes:");
+  Put_Line(count);
   
   # ===== POWER CALCULATION =====
-  Put_Line "=== Power ===";
-  Put_Line "Enter base:";
-  Get_Line num1;
-  Put_Line "Enter exponent:";
-  Get_Line num2;
+  Put_Line("=== Power ===");
+  Put_Line("Enter base:");
+  Get_Line(num1);
+  Put_Line("Enter exponent:");
+  Get_Line(num2);
   
   result := 1;
   i := 0;
@@ -156,19 +156,19 @@ begin
     i := i + 1;
   end loop;
   
-  Put_Line "Power result:";
-  Put_Line result;
+  Put_Line("Power result:");
+  Put_Line(result);
   
   # ===== COLLATZ CONJECTURE =====
-  Put_Line "=== Collatz Sequence ===";
-  Put_Line "Enter starting number:";
-  Get_Line n;
+  Put_Line("=== Collatz Sequence ===");
+  Put_Line("Enter starting number:");
+  Get_Line(n);
   
   count := 0;
-  Put_Line "Sequence:";
+  Put_Line("Sequence:");
   
   while n /= 1 loop
-    Put_Line n;
+    Put_Line(n);
     
     if n rem 2 == 0 then
       n := n / 2;
@@ -179,9 +179,9 @@ begin
     count := count + 1;
   end loop;
   
-  Put_Line n;
-  Put_Line "Steps taken:";
-  Put_Line count;
+  Put_Line(n);
+  Put_Line("Steps taken:");
+  Put_Line(count);
   
-  Put_Line "=== All tests complete ===";
+  Put_Line("=== All tests complete ===");
 end Main;

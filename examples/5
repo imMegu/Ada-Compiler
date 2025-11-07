@@ -1,12 +1,19 @@
 procedure Main is
-   a, b, c, d, e : Integer;
+   a, b, c, d, e, x, y : Integer;
 begin
    a := 10 + 5;
    b := 20 - 8;
-   c := 6 * 7;
+   c := b * 7;
    d := 100 / 4;
    e := 17 rem 3;
+   x := 999;
+   y := a * 2;
 
+   Put_Line(a+b);
+   Put_Line(b);
+   Put_Line(c);
    Put_Line(d);
    Put_Line(e);
+   Put_Line(x);
+   Put_Line(y);
 end Main;

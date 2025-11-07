@@ -1,0 +1,5 @@
+procedure Main is
+   f : Boolean;
+begin
+   f := 3;
+end Main;
