@@ -203,6 +203,13 @@ cmd:
       semantic_error(error_msg);
       exit(1);
     }
+    if (symtab_lookup($3)->type != TYPE_INT) { 
+      char error_msg[256];
+      snprintf(error_msg, sizeof(error_msg), "Type Mismatch: Get_Line requires an Integer variable, got %s for '%s'", 
+                (symtab_lookup($3)->type == TYPE_BOOL ? "Boolean" : "Unknown"), $3);
+      semantic_error(error_msg);
+      exit(1);
+    }
     $$ = ast_get_line($3);
   }
  ;
@@ -263,6 +270,7 @@ expr:
   |  
   STR {
     $$ = ast_string($1);
+    $$->type = TYPE_STRING;
   }
   |
   TRUE {
@@ -320,32 +328,72 @@ expr:
     $$->type = TYPE_INTEGER;
   } 
   |
-  expr GT expr {
+expr GT expr {
+    if ($1->type != $3->type) {
+        semantic_error("Type Mismatch: Cannot compare operands of different types for '>' operation.");
+        exit(1);
+    }
+    if ($1->type == TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: Invalid operation '>' for Boolean type.");
+        exit(1);
+    }
     $$ = ast_binary(GT, $1, $3);
     $$->type = TYPE_BOOLEAN;
   }
   |
   expr LT expr {
+    if ($1->type != $3->type) {
+        semantic_error("Type Mismatch: Cannot compare operands of different types for '<' operation.");
+        exit(1);
+    }
+    if ($1->type == TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: Invalid operation '<' for Boolean type.");
+        exit(1);
+    }
     $$ = ast_binary(LT, $1, $3);
     $$->type = TYPE_BOOLEAN;
   }
   |
   expr EQ expr {
+    if ($1->type != $3->type) {
+        semantic_error("Type Mismatch: Cannot compare operands of different types for '=' operation.");
+        exit(1);
+    }
     $$ = ast_binary(EQ, $1, $3);
     $$->type = TYPE_BOOLEAN;
   }
   |
-  expr NE expr {
+expr NE expr {
+    if ($1->type != $3->type) {
+        semantic_error("Type Mismatch: Cannot compare operands of different types for '/=' operation.");
+        exit(1);
+    }
     $$ = ast_binary(NE, $1, $3);
     $$->type = TYPE_BOOLEAN;
   }
   |
   expr GE expr {
+    if ($1->type != $3->type) {
+        semantic_error("Type Mismatch: Cannot compare operands of different types for '>=' operation.");
+        exit(1);
+    }
+    if ($1->type == TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: Invalid operation '>=' for Boolean type.");
+        exit(1);
+    }
     $$ = ast_binary(GE, $1, $3);
     $$->type = TYPE_BOOLEAN;
   }
   |
   expr LE expr {
+    if ($1->type != $3->type) {
+        semantic_error("Type Mismatch: Cannot compare operands of different types for '<=' operation.");
+        exit(1);
+    }
+    if ($1->type == TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: Invalid operation '<=' for Boolean type.");
+        exit(1);
+    }
     $$ = ast_binary(LE, $1, $3);
     $$->type = TYPE_BOOLEAN;
   }
@@ -357,6 +405,7 @@ expr:
 %%
 
 void yyerror(const char* err) {
+  yynerrs++;
   printf("Line %d: %s - '%s'\n", yyline, err, yytext  );
 }
 

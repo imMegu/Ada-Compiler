@@ -34,17 +34,20 @@ Expr *ast_string(char *string) {
   Expr *node = (Expr *)malloc(sizeof(Expr));
 
   node->kind = E_STRING;
+  node->type = TYPE_STRING; 
 
   int strLen = strlen(string);
+  int newLen = strLen - 2; // O comprimento da string sem aspas
 
-  char *finalid = malloc(sizeof(char) * (strLen - 2));
-  // Remove the " from the string
+  char *finalid = malloc(sizeof(char) * (newLen + 1));
 
-  memcpy(finalid, (string + 1), strLen - 2);
+  memcpy(finalid, (string + 1), newLen);
+
+  finalid[newLen] = '\0';
 
   node->attr.id = finalid;
 
-  free(string);
+  free(string); 
 
   return node;
 }

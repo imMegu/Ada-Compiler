@@ -2,6 +2,7 @@
 #include "parser.h"
 #include "printAbsTree.h"
 #include "symboltable.h"
+extern int yynerrs;
 
 Command *root = NULL;
 
@@ -50,6 +51,8 @@ int eval(Expr *expr) {
     yyerror("Null expression!!");
   } else if (expr->kind == E_INTEGER) {
     result = expr->attr.value;
+  } else if (expr->kind == E_BOOL_VALUE) {
+    result = expr->attr.value;
   } else if (expr->kind == E_OPERATION) {
     int vLeft = eval(expr->attr.op.left);
     int vRight = eval(expr->attr.op.right);
@@ -62,6 +65,10 @@ int eval(Expr *expr) {
       result = vLeft * vRight;
       break;
     case DIV:
+      if (vRight == 0) {
+        yyerror("Runtime Error: Division by zero!");
+        exit(1);
+      }
       result = vLeft / vRight;
       break;
     case MINUS:
@@ -171,10 +178,14 @@ int main(int argc, char **argv) {
       printf("'%s': could not open file\n", *argv);
       return 1;
     }
-  } //  yyin = stdin
+  } 
+  yyparse(); 
 
-  if (yyparse() == 0) {
+  if (yynerrs == 0) {
+    printf("--- Running interpreter ---\n");
     execCmd(root);
+  } else {
+    printf("--- Compilation failed with %d errors. Execution halted. ---\n", yynerrs);
   }
 
   return 0;
