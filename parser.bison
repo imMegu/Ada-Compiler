@@ -103,6 +103,11 @@ decls:
       }
       current = current->next;
     }
+    current = ids->first;
+    while (current != NULL) {
+        free(current->value); // Liberta o strdup() do scanner
+        current = current->next;
+    }
     
     $$ = concatLists($1, $2);
   } 
@@ -163,6 +168,7 @@ cmd:
     }
 
     $$ = ast_expr(ast_assignment($1, $3));
+    free($1);
   }
   |
   IF expr THEN cmd_list if_tail SEMICOLON { 
@@ -197,22 +203,23 @@ cmd:
   }
   |
   GET_LINE LPAREN ID RPAREN SEMICOLON {
-    if (symtab_lookup($3) == NULL) { // Check if ID is declared
+    Symbol* s = symtab_lookup($3); 
+    if (s == NULL) { // Check if ID is declared
       char error_msg[256];
       snprintf(error_msg, sizeof(error_msg), "Undeclared variable '%s' in Get_Line", $3);
       semantic_error(error_msg);
       exit(1);
     }
-    if (symtab_lookup($3)->type != TYPE_INT) { 
+    if (s->type != TYPE_INT) { 
       char error_msg[256];
       snprintf(error_msg, sizeof(error_msg), "Type Mismatch: Get_Line requires an Integer variable, got %s for '%s'", 
-                (symtab_lookup($3)->type == TYPE_BOOL ? "Boolean" : "Unknown"), $3);
+                (s->type == TYPE_BOOL ? "Boolean" : "Unknown"), $3);
       semantic_error(error_msg);
       exit(1);
     }
     $$ = ast_get_line($3);
+    free($3);
   }
- ;
 
 if_tail:
   END IF {
@@ -266,6 +273,7 @@ expr:
     }
     $$ = ast_id($1);
     $$->type = symbol->type; 
+    free($1);
   }
   |  
   STR {
