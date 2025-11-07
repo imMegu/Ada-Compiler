@@ -26,7 +26,7 @@ int yyline = 1;
 "/"   { return DIV; }
 "rem" { return MOD; }
 
-"==" { return EQ; }
+"=" { return EQ; }
 "/=" { return NE; }
 "<"  { return LT; }
 ">"  { return GT; }

@@ -40,7 +40,7 @@ begin
     Put_Line("num2 is greater or equal");
   end if;
   
-  if num1 == 15 then
+  if num1 = 15 then
     Put_Line("num1 equals 15");
   end if;
   
@@ -56,7 +56,7 @@ begin
     isEven := false;
     temp := count rem 2;
     
-    if temp == 0 then
+    if temp = 0 then
       isEven := true;
     end if;
     
@@ -75,7 +75,7 @@ begin
   if num1 < 0 then
     Put_Line("Negative number entered");
     num1 := 0 - num1;
-  elsif num1 == 0 then
+  elsif num1 = 0 then
     Put_Line("Zero entered");
   else
     Put_Line("Positive number entered");

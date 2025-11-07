@@ -8,8 +8,8 @@ procedure Main is
   isPrime : Boolean;
   divisor, count : Integer;
 begin
-  # ===== FACTORIAL CALCULATION =====
-  Put_Line("=== Factorial ===");
+  # === FACTORIAL CALCULATION ===
+  Put_Line("== Factorial ==");
   Put_Line("Enter a number for factorial:");
   Get_Line(n);
   
@@ -24,8 +24,8 @@ begin
   Put_Line("Factorial result:");
   Put_Line(result);
   
-  # ===== FIBONACCI SEQUENCE =====
-  Put_Line("=== Fibonacci ===");
+  # === FIBONACCI SEQUENCE ===
+  Put_Line("== Fibonacci ==");
   Put_Line("Enter how many Fibonacci numbers:");
   Get_Line(n);
   
@@ -42,8 +42,8 @@ begin
     i := i + 1;
   end loop;
   
-  # ===== GREATEST COMMON DIVISOR (Euclidean Algorithm) =====
-  Put_Line("=== GCD ===");
+  # === GREATEST COMMON DIVISOR (Euclidean Algorithm) ===
+  Put_Line("== GCD ==");
   Put_Line("Enter first number:");
   Get_Line(num1);
   Put_Line("Enter second number:");
@@ -59,8 +59,8 @@ begin
   Put_Line("GCD result:");
   Put_Line(gcd);
   
-  # ===== PRIME NUMBER CHECKER =====
-  Put_Line("=== Prime Checker ===");
+  # === PRIME NUMBER CHECKER ===
+  Put_Line("== Prime Checker ==");
   Put_Line("Enter a number to check if prime:");
   Get_Line(n);
   
@@ -71,21 +71,21 @@ begin
   else
     divisor := 2;
     while divisor * divisor <= n loop
-      if n rem divisor == 0 then
+      if n rem divisor = 0 then
         count := count + 1;
       end if;
       divisor := divisor + 1;
     end loop;
   end if;
   
-  if count == 0 then
+  if count = 0 then
     Put_Line("Number is prime");
   else
     Put_Line("Number is not prime");
   end if;
   
-  # ===== SUM OF DIGITS =====
-  Put_Line("=== Sum of Digits ===");
+  # === SUM OF DIGITS ===
+  Put_Line("== Sum of Digits ==");
   Put_Line("Enter a number:");
   Get_Line(n);
   
@@ -98,8 +98,8 @@ begin
   Put_Line("Sum of digits:");
   Put_Line(result);
   
-  # ===== REVERSE A NUMBER =====
-  Put_Line("=== Reverse Number ===");
+  # === REVERSE A NUMBER ===
+  Put_Line("== Reverse Number ==");
   Put_Line("Enter a number to reverse:");
   Get_Line(n);
   
@@ -112,8 +112,8 @@ begin
   Put_Line("Reversed number:");
   Put_Line(result);
   
-  # ===== COUNT PRIMES UP TO N =====
-  Put_Line("=== Count Primes ===");
+  # === COUNT PRIMES UP TO N ===
+  Put_Line("== Count Primes ==");
   Put_Line("Enter upper limit:");
   Get_Line(n);
   
@@ -125,13 +125,13 @@ begin
     divisor := 2;
     
     while divisor * divisor <= num1 loop
-      if num1 rem divisor == 0 then
+      if num1 rem divisor = 0 then
         temp := temp + 1;
       end if;
       divisor := divisor + 1;
     end loop;
     
-    if temp == 0 then
+    if temp = 0 then
       count := count + 1;
     end if;
     
@@ -141,8 +141,8 @@ begin
   Put_Line("Number of primes:");
   Put_Line(count);
   
-  # ===== POWER CALCULATION =====
-  Put_Line("=== Power ===");
+  # === POWER CALCULATION ===
+  Put_Line("== Power ==");
   Put_Line("Enter base:");
   Get_Line(num1);
   Put_Line("Enter exponent:");
@@ -159,8 +159,8 @@ begin
   Put_Line("Power result:");
   Put_Line(result);
   
-  # ===== COLLATZ CONJECTURE =====
-  Put_Line("=== Collatz Sequence ===");
+  # === COLLATZ CONJECTURE ===
+  Put_Line("== Collatz Sequence ==");
   Put_Line("Enter starting number:");
   Get_Line(n);
   
@@ -170,7 +170,7 @@ begin
   while n /= 1 loop
     Put_Line(n);
     
-    if n rem 2 == 0 then
+    if n rem 2 = 0 then
       n := n / 2;
     else
       n := 3 * n + 1;
@@ -183,5 +183,5 @@ begin
   Put_Line("Steps taken:");
   Put_Line(count);
   
-  Put_Line("=== All tests complete ===");
+  Put_Line("== All tests complete ==");
 end Main;
