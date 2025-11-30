@@ -1,33 +1,36 @@
-OBJS=scanner.o parser.o ast.o interpreter.o printAbsTree.o linkedlist.o symboltable.o
+# --- Makefile Atualizado para a Parte 2 ---
+
+OBJS=scanner.o parser.o ast.o symboltable.o linkedlist.o printAbsTree.o tac.o mips.o compiler.o
 INTERM=scanner.c parser.c parser.h
-PROGRAM=./interpreter
-CFLAGS=-g 
+PROGRAM=./compiler
+CFLAGS=-g
 
 all: $(PROGRAM)
 
+# Gera o scanner em C a partir do Flex
 scanner.c: scanner.flex parser.h
 	flex -o scanner.c scanner.flex
 
+# Gera o parser em C e o parser.h a partir do Bison
 parser.c parser.h: parser.bison
-	bison -Wcounterexample --defines=parser.h -o parser.c parser.bison
+	bison --defines=parser.h -o parser.c parser.bison
+tac.o: tac.c tac.h parser.h
+	$(CC) $(CFLAGS) -c tac.c -o tac.o
+
+mips.o: mips.c mips.h tac.h symboltable.h
+	$(CC) $(CFLAGS) -c mips.c -o mips.o
+
+compiler.o: compiler.c parser.h tac.h mips.h
+	$(CC) $(CFLAGS) -c compiler.c -o compiler.o
 
 $(PROGRAM): $(OBJS)
-	$(CC) -o $(PROGRAM) $(OBJS)
+	$(CC) $(CFLAGS) -o $(PROGRAM) $(OBJS)
 
 clean:
-	rm -f $(PROGRAM) $(OBJS) $(INTERM)
+	rm -f $(PROGRAM) $(OBJS) $(INTERM) *.asm
 
 test: $(PROGRAM)
 	@for f in examples/example*.txt; do \
-		echo "Running $$f..."; \
-		$(PROGRAM) $$f; \
+		echo "Compiling $$f..."; \
+		$(PROGRAM) $$f $${f%.txt}.asm; \
 	done
-
-test%: $(PROGRAM)
-	@FILE=examples/$*; \
-	if [ -f $$FILE ]; then \
-		echo "Running $$FILE..."; \
-		$(PROGRAM) $$FILE; \
-	else \
-		echo "Test $$FILE not found."; \
-	fi

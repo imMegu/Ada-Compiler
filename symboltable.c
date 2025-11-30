@@ -168,3 +168,23 @@ void symtab_free_table(SymbolTable *st) {
   // Free the table structure itself
   free(st);
 }
+
+// Atribui offsets a todas as variáveis do scope global (simplificado)
+// No MIPS, vamos guardar as variáveis a partir de $fp (Frame Pointer)
+void symtab_assign_offsets() {
+    if (!current_scope) return;
+    
+    int current_offset = 0;
+    
+    // Percorre todos os buckets da tabela hash
+    for (int i = 0; i < SYMBOL_TABLE_SIZE; i++) {
+        SymbolTableEntry *entry = current_scope->table[i];
+        while (entry != NULL) {
+            // Cada inteiro ocupa 4 bytes
+            current_offset -= 4; 
+            entry->symbol->offset = current_offset;
+            // printf("Var %s offset: %d\n", entry->symbol->name, current_offset);
+            entry = entry->next;
+        }
+    }
+}

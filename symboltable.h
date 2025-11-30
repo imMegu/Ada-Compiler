@@ -16,7 +16,8 @@ typedef enum { TYPE_INT, TYPE_BOOL, TYPE_PROCEDURE, TYPE_UNKNOWN } SymbolType;
 typedef struct Symbol {
   char *name;      // The identifier name (e.g., "my_var")
   SymbolType type; // The data type of the symbol (e.g., TYPE_INT)
-  int scope;       // The nesting level of the symbol's declaration
+  int scope;      // The nesting level of the symbol's declaration
+  int offset;
 } Symbol;
 
 // A node in the linked list for hash collisions.
@@ -52,5 +53,5 @@ Symbol *symtab_lookup(char *name);
 
 // Cleanup
 void symtab_free_table(SymbolTable *st);
-
+void symtab_assign_offsets();
 #endif // SYMBOLTABLE_H

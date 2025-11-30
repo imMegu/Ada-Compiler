@@ -1,0 +1,37 @@
+#ifndef TAC_H
+#define TAC_H
+
+#include "ast.h"
+
+// Tipos de operações no código intermédio
+typedef enum {
+    TAC_ADD, TAC_SUB, TAC_MUL, TAC_DIV, TAC_MOD, // Aritmética
+    TAC_EQ, TAC_NE, TAC_LT, TAC_LE, TAC_GT, TAC_GE, // Comparação
+    TAC_MOV,    // Atribuição (copy)
+    TAC_LABEL,  // Label de salto
+    TAC_JMP,    // Salto incondicional (goto)
+    TAC_IFZ,    // Salto condicional (se zero)
+    TAC_PRINT_INT, // Print integer
+    TAC_PRINT_STR, // Print string
+    TAC_READ,   // Read integer
+    TAC_RET     // Return
+} TACOp;
+
+// Estrutura de uma instrução TAC
+typedef struct TAC {
+    TACOp op;
+    char *result;
+    char *arg1;
+    char *arg2;
+    struct TAC *next;
+    struct TAC *prev;
+} TAC;
+
+// Funções
+TAC* tac_create(TACOp op, char *result, char *arg1, char *arg2);
+TAC* tac_join(TAC *l1, TAC *l2);
+TAC* generate_code(Command *root);
+
+void tac_dump(TAC *tac); // <--- ADICIONA ESTA LINHA
+
+#endif
