@@ -7,21 +7,21 @@
 int temp_count = 0;
 int label_count = 0;
 
-// Cria uma variável temporária (t0, t1, t2...)
+// Cria uma variável temporária
 char* make_temp() {
     char buffer[20];
     sprintf(buffer, "t%d", temp_count++);
     return strdup(buffer);
 }
 
-// Cria uma label (L0, L1, L2...)
+// Cria label 
 char* make_label() {
     char buffer[20];
     sprintf(buffer, "L%d", label_count++);
     return strdup(buffer);
 }
 
-// Construtor de instruções TAC
+// Construtor das instruções TAC
 TAC* tac_create(TACOp op, char *result, char *arg1, char *arg2) {
     TAC *t = (TAC*)malloc(sizeof(TAC));
     t->op = op;
@@ -33,7 +33,7 @@ TAC* tac_create(TACOp op, char *result, char *arg1, char *arg2) {
     return t;
 }
 
-// Junta duas listas de instruções (liga o fim da l1 ao início da l2)
+// Junta duas listas de instruções 
 TAC* tac_join(TAC *l1, TAC *l2) {
     if (!l1) return l2;
     if (!l2) return l1;
@@ -49,7 +49,7 @@ TAC* tac_join(TAC *l1, TAC *l2) {
 }
 
 // Gera código para Expressões
-// Retorna o nome da variável onde ficou o resultado (ex: "t0")
+// Retorna o nome da variável onde ficou o resultado 
 char* tac_expr(Expr *e, TAC **code) {
     if (!e) return NULL;
 
@@ -79,7 +79,7 @@ char* tac_expr(Expr *e, TAC **code) {
         char *t2 = tac_expr(e->attr.op.right, &c2);
         
         char *res = make_temp();
-        TACOp op = TAC_ADD; // Default
+        TACOp op = TAC_ADD; 
         
         // Mapeia os tokens do parser para operações TAC
         switch(e->attr.op.op) {
@@ -106,8 +106,6 @@ char* tac_expr(Expr *e, TAC **code) {
     }
     return NULL;
 }
-
-// Declaração antecipada
 TAC* tac_cmd(Command *cmd);
 
 // Gera código para Comandos
@@ -169,7 +167,6 @@ TAC* tac_cmd(Command *cmd) {
             break;
         }
         case COMPOUND_CMD: {
-            // Bloco de comandos
             if (cmd->attr.compound.commands) {
                 Node *current = cmd->attr.compound.commands->first;
                 while (current) {

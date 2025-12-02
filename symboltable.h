@@ -50,8 +50,6 @@ SymbolTable *symtab_mk_table();
 int symtab_insert(char *name, SymbolType type);
 
 Symbol *symtab_lookup(char *name);
-
-// Cleanup
 void symtab_free_table(SymbolTable *st);
 void symtab_assign_offsets();
-#endif // SYMBOLTABLE_H
+#endif 

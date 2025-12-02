@@ -18,6 +18,70 @@ typedef struct VarMap {
 VarMap *varmap = NULL;
 int stack_offset = 0; // Vai crescer negativamente
 
+typedef struct StringLiteral {
+    char *value; // O valor da string (e.g., "\"Sum:\"")
+    char *label; // O rótulo MIPS (e.g., "str_0")
+    struct StringLiteral *next;
+} StringLiteral;
+
+StringLiteral *string_literals = NULL;
+int str_label_count = 0;
+
+// Função para procurar/criar o rótulo da string
+char* get_string_label(char *value) {
+    // 1. Procurar string existente
+    StringLiteral *curr = string_literals;
+    while(curr) {
+        if (strcmp(curr->value, value) == 0) return curr->label;
+        curr = curr->next;
+    }
+
+    // 2. Se não encontrou, criar novo rótulo e nó
+    char buffer[20];
+    sprintf(buffer, "str_%d", str_label_count++);
+    char *new_label = strdup(buffer);
+
+    StringLiteral *new_lit = malloc(sizeof(StringLiteral));
+    new_lit->value = strdup(value);
+    new_lit->label = new_label;
+    
+    // Adicionar ao início da lista
+    new_lit->next = string_literals;
+    string_literals = new_lit;
+
+    return new_label;
+}
+
+// Função para despejar todas as strings na secção .data
+void dump_string_literals(FILE *fout) {
+    StringLiteral *curr = string_literals;
+    // O curr agora contém a lista de trás para a frente. 
+    // Para imprimir na ordem correta, a abordagem mais simples é iterar e imprimir.
+    // Vamos assumir que a ordem de impressão não é crítica para o assembler.
+    while(curr) {
+        // fprintf(fout, "%s: .asciiz %s\n", curr->label, curr->value);
+        // O valor do arg1 já inclui as aspas (ex: "\"Done!\"").
+        // Temos de as remover para evitar aspas duplas no .asciiz
+        // Mas a sua implementação em ast.c já as removeu (mas o tac.c não sabe).
+        // Na sua implementação atual em mips.c, o tac->arg1 tem aspas:
+        // Exemplo: str_0: .asciiz "Done!"
+        // Se tac->arg1 for "\"Done!\"", o output é str_0: .asciiz "\"Done!\"" (mal)
+        // O código original estava a usar str_p, mas se a string for um literal, o tac->arg1 já contém as aspas.
+        // O código de ast.c (source: 62) mostra que E_STRING usa ast_string($1) e $1 é o token STR que tem aspas.
+        // O ast_string (em ast.c) remove as aspas e guarda a string pura em node->attr.id (source: 62).
+        // No tac.c (source: 161), o TAC_PRINT_STR usa cmd->attr.putLine.value->attr.id (que é a string pura sem aspas).
+        
+        // **ASSUMINDO QUE tac->arg1 É A STRING PURA (SEM ASPAS):**
+        fprintf(fout, "%s: .asciiz \"%s\"\n", curr->label, curr->value); 
+        // **Se tac->arg1 contiver as aspas, use:**
+        // fprintf(fout, "%s: .asciiz %s\n", curr->label, curr->value);
+        
+        curr = curr->next;
+    }
+}
+
+
+
 // Procura offset de uma variável ou temporário
 int get_offset(char *name) {
     // 1. Tenta encontrar nos temporários locais
@@ -43,15 +107,25 @@ int get_offset(char *name) {
 
 void mips_generate(TAC *tac, FILE *fout) {
     if (!fout) return;
+    // PRÉ-PASSAGEM para recolher strings
+    TAC *current_tac = tac;
+    while(current_tac) {
+        if (current_tac->op == TAC_PRINT_STR) {
+            get_string_label(current_tac->arg1);
+        }
+        current_tac = current_tac->next;
+    }
 
-    // Cabeçalho
+    // Cabeçalho 
     fprintf(fout, ".data\n");
     fprintf(fout, "newline: .asciiz \"\\n\"\n");
+    
+    dump_string_literals(fout);
     
     fprintf(fout, ".text\n");
     fprintf(fout, ".globl main\n");
     fprintf(fout, "main:\n");
-    
+        
     // Prologo
     fprintf(fout, "    move $fp, $sp\n");
     fprintf(fout, "    subu $sp, $sp, 1000\n"); 
@@ -130,13 +204,17 @@ void mips_generate(TAC *tac, FILE *fout) {
                 fprintf(fout, "    syscall\n");
                 break;
 
-             case TAC_PRINT_STR:
-                fprintf(fout, "    .data\n");
-                fprintf(fout, "str_%p: .asciiz %s\n", tac->arg1, tac->arg1);
-                fprintf(fout, "    .text\n");
-                fprintf(fout, "    la $a0, str_%p\n", tac->arg1);
-                fprintf(fout, "    li $v0, 4\n");
+            // Bloco CORRIGIDO para TAC_PRINT_STR
+            case TAC_PRINT_STR:
+                // O rótulo já foi gerado e está na secção .data
+                char *string_label = get_string_label(tac->arg1);
+
+                fprintf(fout, "    la $a0, %s\n", string_label); // Carrega o endereço do rótulo
+                fprintf(fout, "    li $v0, 4\n");                 // Código de serviço para print_string
                 fprintf(fout, "    syscall\n");
+                
+                // Imprimir newline
+                fprintf(fout, "    li $v0, 4\n");
                 fprintf(fout, "    la $a0, newline\n");
                 fprintf(fout, "    syscall\n");
                 break;
