@@ -6,45 +6,42 @@
 #include "tac.h"
 #include "mips.h"
 
-// Variáveis globais do parser
 extern int yynerrs;
 Command *root = NULL;
 extern FILE *yyin;
 
 int main(int argc, char **argv) {
-    // 1. Validar argumentos
     if (argc < 2) {
         printf("Uso: %s <input_file.ada> [output_file.asm]\n", argv[0]);
         return 1;
     }
 
-    // 2. Abrir ficheiro de entrada
+    //Abrir ficheiro de entrada
     yyin = fopen(argv[1], "r");
     if (!yyin) {
         printf("Erro ao abrir ficheiro de entrada: %s\n", argv[1]);
         return 1;
     }
 
-    // 3. Definir nome do ficheiro de saída
     char *out_filename = "output.asm"; 
     if (argc >= 3) {
         out_filename = argv[2];
     }
 
-    // 4. Executar Parser (Análise Sintática)
+    //Executar Parser
     yyparse();
 
-    // 5. Verificar se houve erros
+    //Verifica se houve erros
     if (yynerrs == 0 && root != NULL) {
         
-        // --- PASSO 1: GERAR TAC ---
+        // GERA TAC 
         TAC *code = generate_code(root);
         
-        // --- IMPRIMIR NO TERMINAL (O que tu pediste) ---
-        // Isto mostra a lista de instruções no ecrã para verificação
+        //IMPRIME NO TERMINAL
+        // Lista de instruções no ecrã para verificação
         tac_dump(code); 
 
-        // --- PASSO 2: GERAR MIPS PARA FICHEIRO ---
+        // GERA MIPS PARA FICHEIRO
         FILE *fout = fopen(out_filename, "w");
         if (!fout) {
             printf("Erro ao criar ficheiro de saída: %s\n", out_filename);

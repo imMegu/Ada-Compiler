@@ -2,8 +2,6 @@
 #define TAC_H
 
 #include "ast.h"
-
-// Tipos de operações no código intermédio
 typedef enum {
     TAC_ADD, TAC_SUB, TAC_MUL, TAC_DIV, TAC_MOD, // Aritmética
     TAC_EQ, TAC_NE, TAC_LT, TAC_LE, TAC_GT, TAC_GE, // Comparação
@@ -27,11 +25,10 @@ typedef struct TAC {
     struct TAC *prev;
 } TAC;
 
-// Funções
 TAC* tac_create(TACOp op, char *result, char *arg1, char *arg2);
 TAC* tac_join(TAC *l1, TAC *l2);
 TAC* generate_code(Command *root);
 
-void tac_dump(TAC *tac); // <--- ADICIONA ESTA LINHA
+void tac_dump(TAC *tac);
 
 #endif

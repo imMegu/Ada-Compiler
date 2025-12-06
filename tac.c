@@ -21,7 +21,6 @@ char* make_label() {
     return strdup(buffer);
 }
 
-// Construtor das instruções TAC
 TAC* tac_create(TACOp op, char *result, char *arg1, char *arg2) {
     TAC *t = (TAC*)malloc(sizeof(TAC));
     t->op = op;
@@ -49,7 +48,6 @@ TAC* tac_join(TAC *l1, TAC *l2) {
 }
 
 // Gera código para Expressões
-// Retorna o nome da variável onde ficou o resultado 
 char* tac_expr(Expr *e, TAC **code) {
     if (!e) return NULL;
 
@@ -97,7 +95,7 @@ char* tac_expr(Expr *e, TAC **code) {
             default: break;
         }
 
-        // Junta tudo: Código da esquerda + Código da direita + Instrução atual
+        // Junto tudo: Código da esquerda + Código da direita + Instrução atual
         *code = tac_join(*code, c1);
         *code = tac_join(*code, c2);
         *code = tac_join(*code, tac_create(op, res, t1, t2));
