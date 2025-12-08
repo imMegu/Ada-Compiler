@@ -76,10 +76,21 @@ int get_offset(char *name) {
     // Cria novo espaço na stack (é um temporário novo)
     stack_offset -= 4;
     VarMap *n = malloc(sizeof(VarMap));
+    if (!n) {
+        perror("malloc VarMap failed"); // Adiciona verificação de erro
+        exit(EXIT_FAILURE);
+    }
+
     n->name = strdup(name);
+    if (!n->name) {
+        perror("strdup VarMap name failed"); // Adiciona verificação de erro
+        free(n);
+        exit(EXIT_FAILURE);
+    }
     n->offset = stack_offset;
-    n->next = varmap;
-    varmap = n;
+    n->offset = stack_offset;
+    n->next = varmap; 
+    varmap = n;     
     return stack_offset;
 }
 

@@ -207,6 +207,13 @@ void tac_dump(TAC *tac) {
             case TAC_SUB: printf("%s = %s - %s\n", tac->result, tac->arg1, tac->arg2); break;
             case TAC_MUL: printf("%s = %s * %s\n", tac->result, tac->arg1, tac->arg2); break;
             case TAC_DIV: printf("%s = %s / %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_MOD: printf("%s = %s %% %s\n", tac->result, tac->arg1, tac->arg2); break; // Modulo
+            case TAC_EQ:  printf("%s = %s == %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_NE:  printf("%s = %s != %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_LT:  printf("%s = %s < %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_GT:  printf("%s = %s > %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_LE:  printf("%s = %s <= %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_GE:  printf("%s = %s >= %s\n", tac->result, tac->arg1, tac->arg2); break;
             case TAC_MOV: printf("%s = %s\n", tac->result, tac->arg1); break;
             case TAC_LABEL: printf("%s:\n", tac->result); break;
             case TAC_JMP: printf("goto %s\n", tac->result); break;
