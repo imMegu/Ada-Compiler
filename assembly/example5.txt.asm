@@ -4,7 +4,7 @@ newline: .asciiz "\n"
 .globl main
 main:
     move $fp, $sp
-    subu $sp, $sp, 1000
+    subu $sp, $sp, 100
     li $t0, 10
     sw $t0, -4($fp)
     li $t0, 5

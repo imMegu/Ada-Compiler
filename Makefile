@@ -29,8 +29,18 @@ $(PROGRAM): $(OBJS)
 clean:
 	rm -f $(PROGRAM) $(OBJS) $(INTERM) *.asm
 
-test: $(PROGRAM)
-	@for f in examples/example*.txt; do \
+tests: $(PROGRAM)
+	@mkdir -p assembly # Ensure the output directory exists
+	@for f in examples/*; do \
 		echo "Compiling $$f..."; \
-		$(PROGRAM) $$f $${f%.txt}.asm; \
+		$(PROGRAM) $$f assembly/$$(basename $${f}).asm; \
 	done
+
+test:
+	@echo "Usage: make test <example>"
+	@false
+
+test-%: $(PROGRAM)
+	@echo "Compiling examples/$*..."
+	$(PROGRAM) examples/$* assembly/$*.asm
+

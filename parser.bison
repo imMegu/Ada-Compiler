@@ -95,7 +95,7 @@ decls:
     Node *current = ids->first;
     while (current != NULL) {
       char *var_name = (char *)current->value;
-      if (symtab_insert(var_name, $4 == TYPE_INTEGER ? TYPE_INT : TYPE_BOOL) != 0) {
+      if (symtab_insert(var_name, $4) != 0) {
         char error_msg[256];
         snprintf(error_msg, sizeof(error_msg), "Variable '%s' already declared in this scope", var_name);
         semantic_error(error_msg);
@@ -198,7 +198,7 @@ cmd:
     $$ = ast_while($2, body);
   }
   |
-  PUT_LINE LPAREN expr RPAREN SEMICOLON {
+  PUT_LINE LPAREN expr RPAREN SEMICOLON {    
     $$ = ast_put_line($3);
   }
   |
@@ -210,10 +210,10 @@ cmd:
       semantic_error(error_msg);
       exit(1);
     }
-    if (s->type != TYPE_INT) { 
+    if (s->type != TYPE_INTEGER) { 
       char error_msg[256];
       snprintf(error_msg, sizeof(error_msg), "Type Mismatch: Get_Line requires an Integer variable, got %s for '%s'", 
-                (s->type == TYPE_BOOL ? "Boolean" : "Unknown"), $3);
+                (s->type == TYPE_BOOLEAN ? "Boolean" : "Unknown"), $3);
       semantic_error(error_msg);
       exit(1);
     }

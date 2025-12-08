@@ -4,7 +4,7 @@
 
 #include "linkedlist.h"
 
-enum TypeKind { TYPE_INTEGER, TYPE_STRING, TYPE_BOOLEAN };
+enum TypeKind { TYPE_INTEGER, TYPE_STRING, TYPE_BOOLEAN, TYPE_UNKNOWN };
 
 // AST for expressions
 struct _Expr {

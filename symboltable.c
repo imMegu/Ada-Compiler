@@ -46,7 +46,7 @@ unsigned int symtab_hash(char *name) {
   return hash % SYMBOL_TABLE_SIZE;
 }
 
-Symbol *symtab_mk_symbol(char *name, SymbolType type) {
+Symbol *symtab_mk_symbol(char *name, enum TypeKind type) {
   Symbol *s = (Symbol *)malloc(sizeof(Symbol));
   if (!s) {
     perror("malloc Symbol");
@@ -82,7 +82,7 @@ SymbolTable *symtab_mk_table() {
 
 // --- Core Operations Implementation ---
 
-int symtab_insert(char *name, SymbolType type) {
+int symtab_insert(char *name, enum TypeKind type) {
   if (current_scope == NULL) {
     symtab_enter_scope();
   }
@@ -173,27 +173,27 @@ void symtab_free_table(SymbolTable *st) {
 // No MIPS, vamos guardar as variáveis a partir de $fp (Frame Pointer)
 static int symtab_max_offset_value = 0; // O offset mais negativo atingido
 void symtab_assign_offsets() {
-    if (!current_scope) return;
-    
-    int current_offset = 0;
-    
-    // Percorre todos os buckets da tabela hash
-    for (int i = 0; i < SYMBOL_TABLE_SIZE; i++) {
-        SymbolTableEntry *entry = current_scope->table[i];
-        while (entry != NULL) {
-            // Cada inteiro ocupa 4 bytes
-            current_offset -= 4; 
-            entry->symbol->offset = current_offset;
-            // printf("Var %s offset: %d\n", entry->symbol->name, current_offset);
-            entry = entry->next;
-        }
-        symtab_max_offset_value = current_offset; 
-    }
-}
-  
+  if (!current_scope)
+    return;
 
-  // função getter para o total de bytes necessários
+  int current_offset = 0;
+
+  // Percorre todos os buckets da tabela hash
+  for (int i = 0; i < SYMBOL_TABLE_SIZE; i++) {
+    SymbolTableEntry *entry = current_scope->table[i];
+    while (entry != NULL) {
+      // Cada inteiro ocupa 4 bytes
+      current_offset -= 4;
+      entry->symbol->offset = current_offset;
+      // printf("Var %s offset: %d\n", entry->symbol->name, current_offset);
+      entry = entry->next;
+    }
+    symtab_max_offset_value = current_offset;
+  }
+}
+
+// função getter para o total de bytes necessários
 int symtab_get_declared_var_size() {
-  // Retorna o tamanho em bytes 
-    return abs(symtab_max_offset_value);
+  // Retorna o tamanho em bytes
+  return abs(symtab_max_offset_value);
 }

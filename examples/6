@@ -16,7 +16,7 @@ begin
         B := C;
         I := I + 1;
     end loop;
-  elsif (N == 1) then 
+  elsif (N = 1) then 
     B := 1;
   else
     B := 0;
