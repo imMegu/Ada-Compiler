@@ -85,6 +85,8 @@ int get_offset(char *name) {
 
 void mips_generate(TAC *tac, FILE *fout) {
     if (!fout) return;
+    
+    // Inicialização e Strings (Primeira Leitura do TAC)
     TAC *current_tac = tac;
     while(current_tac) {
         if (current_tac->op == TAC_PRINT_STR) {
@@ -93,29 +95,57 @@ void mips_generate(TAC *tac, FILE *fout) {
         current_tac = current_tac->next;
     }
 
+    // Cálculo Rigoroso de Offsets 
+    // Recorre o TAC para forçar a chamada a get_offset() para todos os temporários (t%d)
+    // e variáveis. Isto preenche a VarMap e o stack_offset GLOBAL.
+    current_tac = tac; // Reinicia o ponteiro TAC
+    while(current_tac) {
+      
+        if (current_tac->result) get_offset(current_tac->result);
+        
+        
+        if (current_tac->arg1) {
+            int is_str_literal = (current_tac->op == TAC_PRINT_STR);
+            int is_num_literal = (current_tac->arg1[0] >= '0' && current_tac->arg1[0] <= '9');
+
+            if (!is_str_literal && !is_num_literal)
+                get_offset(current_tac->arg1);
+        }
+        
+        if (current_tac->arg2 && !(current_tac->arg2[0] >= '0' && current_tac->arg2[0] <= '9'))
+            get_offset(current_tac->arg2);
+            
+        current_tac = current_tac->next;
+    }
+
+    //GERAÇÃO DA SECÇÃO .data (Usando strings recolhidas no Passo 0)
     fprintf(fout, ".data\n");
     fprintf(fout, "newline: .asciiz \"\\n\"\n");
-    
-    dump_string_literals(fout);
-    
+    dump_string_literals(fout); 
+
+    symtab_assign_offsets(); 
+    // AGORA stack_offset TEM O VALOR CORRETO
+    int temporary_size = abs(stack_offset); 
+    int declared_size = symtab_get_declared_var_size(); 
+    int total_stack_size = temporary_size + declared_size; 
+   
     fprintf(fout, ".text\n");
     fprintf(fout, ".globl main\n");
     fprintf(fout, "main:\n");
      
     fprintf(fout, "    move $fp, $sp\n");
-    fprintf(fout, "    subu $sp, $sp, 1000\n"); 
-
-    symtab_assign_offsets(); 
-    
-    while(tac) {
-        switch(tac->op) {
+    // Alocação rigorosa com o tamanho TOTAL calculado:
+    fprintf(fout, "    subu $sp, $sp, %d\n", total_stack_size); 
+    current_tac = tac; // Reinicia o ponteiro TAC para o loop de geração
+    while(current_tac) {
+        switch(current_tac->op) {
             case TAC_MOV:
-                if (tac->arg1[0] >= '0' && tac->arg1[0] <= '9') {
-                    fprintf(fout, "    li $t0, %s\n", tac->arg1);
+                if (current_tac->arg1[0] >= '0' && current_tac->arg1[0] <= '9') {
+                    fprintf(fout, "    li $t0, %s\n", current_tac->arg1);
                 } else {
-                    fprintf(fout, "    lw $t0, %d($fp)\n", get_offset(tac->arg1));
+                    fprintf(fout, "    lw $t0, %d($fp)\n", get_offset(current_tac->arg1));
                 }
-                fprintf(fout, "    sw $t0, %d($fp)\n", get_offset(tac->result));
+                fprintf(fout, "    sw $t0, %d($fp)\n", get_offset(current_tac->result));
                 break;
 
             case TAC_ADD:
@@ -128,50 +158,92 @@ void mips_generate(TAC *tac, FILE *fout) {
             case TAC_LT:
             case TAC_LE:
             case TAC_GT:
-            case TAC_GE:
-                // Arg1
-                if (tac->arg1[0] >= '0' && tac->arg1[0] <= '9') 
-                    fprintf(fout, "    li $t0, %s\n", tac->arg1);
-                else 
-                    fprintf(fout, "    lw $t0, %d($fp)\n", get_offset(tac->arg1));
+            case TAC_GE: {
                 
-                // Arg2
-                if (tac->arg2[0] >= '0' && tac->arg2[0] <= '9') 
-                    fprintf(fout, "    li $t1, %s\n", tac->arg2);
-                else 
-                    fprintf(fout, "    lw $t1, %d($fp)\n", get_offset(tac->arg2));
+                // Variáveis auxiliares para rastrear o tipo de argumento
+                int arg1_is_imm = (current_tac->arg1[0] >= '0' && current_tac->arg1[0] <= '9');
+                int arg2_is_imm = (current_tac->arg2[0] >= '0' && current_tac->arg2[0] <= '9');
+            
+                if (current_tac->op == TAC_ADD && (arg1_is_imm || arg2_is_imm)) {
+                    
+                    char *reg_arg = arg1_is_imm ? current_tac->arg2 : current_tac->arg1;
+                    char *imm_val = arg1_is_imm ? current_tac->arg1 : current_tac->arg2;
+                    
+                    if (arg1_is_imm && arg2_is_imm) {
+                        fprintf(fout, "    li $t0, %s\n", current_tac->arg1);
+                        fprintf(fout, "    addi $t2, $t0, %s\n", current_tac->arg2); 
+                    } else {
+                        fprintf(fout, "    lw $t0, %d($fp)\n", get_offset(reg_arg));
+                        fprintf(fout, "    addi $t2, $t0, %s\n", imm_val); 
+                    }
+                    
+                } 
+                // OTIMIZAÇÃO RIGOROSA: SUBI (TAC_SUB com Immediato) 
+                else if (current_tac->op == TAC_SUB && arg2_is_imm) {
+                 
+                    if (!arg1_is_imm) {
+                        // REG - IMM: Usa ADDI com o imediato negativo
+                        int imm_int = atoi(current_tac->arg2); // Necessário para imprimir o negativo
+                        
+                        fprintf(fout, "    lw $t0, %d($fp)\n", get_offset(current_tac->arg1));
+                        fprintf(fout, "    addi $t2, $t0, %d\n", -imm_int); 
+                        
+                    } else {
+                        // IMM - IMM: Não há addi para 16-bit com 2 imediatos, mantém a versão LI/SUB
+                        fprintf(fout, "    li $t0, %s\n", current_tac->arg1);
+                        fprintf(fout, "    li $t1, %s\n", current_tac->arg2);
+                        fprintf(fout, "    sub $t2, $t0, $t1\n");
+                    }
+                    
+                } 
+                // CASO PADRÃO (Sem otimização de imediato ou para outras operações)
+                else {
 
-                // Operação
-                if (tac->op == TAC_ADD) fprintf(fout, "    add $t2, $t0, $t1\n");
-                else if (tac->op == TAC_SUB) fprintf(fout, "    sub $t2, $t0, $t1\n");
-                else if (tac->op == TAC_MUL) fprintf(fout, "    mul $t2, $t0, $t1\n");
-                else if (tac->op == TAC_DIV) fprintf(fout, "    div $t2, $t0, $t1\n");
-                else if (tac->op == TAC_MOD) fprintf(fout, "    rem $t2, $t0, $t1\n");
-                else if (tac->op == TAC_EQ) fprintf(fout, "    seq $t2, $t0, $t1\n");
-                else if (tac->op == TAC_NE) fprintf(fout, "    sne $t2, $t0, $t1\n");
-                else if (tac->op == TAC_LT) fprintf(fout, "    slt $t2, $t0, $t1\n");
-                else if (tac->op == TAC_LE) fprintf(fout, "    sle $t2, $t0, $t1\n");
-                else if (tac->op == TAC_GT) fprintf(fout, "    sgt $t2, $t0, $t1\n");
-                else if (tac->op == TAC_GE) fprintf(fout, "    sge $t2, $t0, $t1\n");
+                    // Arg1: Load/LI
+                    if (arg1_is_imm) 
+                        fprintf(fout, "    li $t0, %s\n", current_tac->arg1);
+                    else 
+                        fprintf(fout, "    lw $t0, %d($fp)\n", get_offset(current_tac->arg1));
+                    
+                    // Arg2: Load/LI
+                    if (arg2_is_imm) 
+                        fprintf(fout, "    li $t1, %s\n", current_tac->arg2);
+                    else 
+                        fprintf(fout, "    lw $t1, %d($fp)\n", get_offset(current_tac->arg2));
 
-                fprintf(fout, "    sw $t2, %d($fp)\n", get_offset(tac->result));
+                    // Operação
+                    if (current_tac->op == TAC_ADD) fprintf(fout, "    add $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_SUB) fprintf(fout, "    sub $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_MUL) fprintf(fout, "    mul $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_DIV) fprintf(fout, "    div $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_MOD) fprintf(fout, "    rem $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_EQ) fprintf(fout, "    seq $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_NE) fprintf(fout, "    sne $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_LT) fprintf(fout, "    slt $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_LE) fprintf(fout, "    sle $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_GT) fprintf(fout, "    sgt $t2, $t0, $t1\n");
+                    else if (current_tac->op == TAC_GE) fprintf(fout, "    sge $t2, $t0, $t1\n");
+                }
+
+                fprintf(fout, "    sw $t2, %d($fp)\n", get_offset(current_tac->result));
                 break;
+            }
 
             case TAC_LABEL:
-                fprintf(fout, "%s:\n", tac->result);
+                fprintf(fout, "%s:\n", current_tac->result);
                 break;
             
             case TAC_JMP:
-                fprintf(fout, "    j %s\n", tac->result);
+                fprintf(fout, "    j %s\n", current_tac->result);
                 break;
 
             case TAC_IFZ:
-                fprintf(fout, "    lw $t0, %d($fp)\n", get_offset(tac->arg1));
-                fprintf(fout, "    beqz $t0, %s\n", tac->result);
+                fprintf(fout, "    lw $t0, %d($fp)\n", get_offset(current_tac->arg1));
+                fprintf(fout, "    beqz $t0, %s\n", current_tac->result);
                 break;
 
             case TAC_PRINT_INT:
-                fprintf(fout, "    lw $a0, %d($fp)\n", get_offset(tac->arg1));
+                fprintf(fout, "    lw $a0, %d($fp)\n", get_offset(current_tac->arg1));
                 fprintf(fout, "    li $v0, 1\n");
                 fprintf(fout, "    syscall\n");
                 fprintf(fout, "    li $v0, 4\n");
@@ -181,7 +253,7 @@ void mips_generate(TAC *tac, FILE *fout) {
 
             case TAC_PRINT_STR:
 
-                char *string_label = get_string_label(tac->arg1);
+                char *string_label = get_string_label(current_tac->arg1);
 
                 fprintf(fout, "    la $a0, %s\n", string_label); 
                 fprintf(fout, "    li $v0, 4\n");                
@@ -196,12 +268,12 @@ void mips_generate(TAC *tac, FILE *fout) {
             case TAC_READ:
                 fprintf(fout, "    li $v0, 5\n");
                 fprintf(fout, "    syscall\n");
-                fprintf(fout, "    sw $v0, %d($fp)\n", get_offset(tac->arg1));
+                fprintf(fout, "    sw $v0, %d($fp)\n", get_offset(current_tac->arg1));
                 break;
             
             default: break;
         }
-        tac = tac->next;
+        current_tac = current_tac->next;
     }
 
     fprintf(fout, "    li $v0, 10\n");

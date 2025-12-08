@@ -99,7 +99,8 @@ char* tac_expr(Expr *e, TAC **code) {
         *code = tac_join(*code, c1);
         *code = tac_join(*code, c2);
         *code = tac_join(*code, tac_create(op, res, t1, t2));
-        
+        free(t1); 
+        free(t2);
         return res;
     }
     return NULL;

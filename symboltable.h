@@ -52,4 +52,5 @@ int symtab_insert(char *name, SymbolType type);
 Symbol *symtab_lookup(char *name);
 void symtab_free_table(SymbolTable *st);
 void symtab_assign_offsets();
+int symtab_get_declared_var_size();
 #endif 

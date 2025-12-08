@@ -171,6 +171,7 @@ void symtab_free_table(SymbolTable *st) {
 
 // Atribui offsets a todas as variáveis do scope global (simplificado)
 // No MIPS, vamos guardar as variáveis a partir de $fp (Frame Pointer)
+static int symtab_max_offset_value = 0; // O offset mais negativo atingido
 void symtab_assign_offsets() {
     if (!current_scope) return;
     
@@ -186,5 +187,13 @@ void symtab_assign_offsets() {
             // printf("Var %s offset: %d\n", entry->symbol->name, current_offset);
             entry = entry->next;
         }
+        symtab_max_offset_value = current_offset; 
     }
+}
+  
+
+  // função getter para o total de bytes necessários
+int symtab_get_declared_var_size() {
+  // Retorna o tamanho em bytes 
+    return abs(symtab_max_offset_value);
 }
