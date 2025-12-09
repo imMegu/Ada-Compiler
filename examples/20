@@ -1,0 +1,28 @@
+procedure Main is
+  x, y : Integer;
+  a, b, result : Boolean;
+begin
+  # Test basic boolean values
+  a := true;
+  b := false;
+
+  result := a xor b;
+  Put_Line("true xor false result");
+  Put_Line(result);
+  
+  result := a xor a;
+  Put_Line("true xor true result");
+  Put_Line(result);
+
+  result := b xor b;
+  Put_Line("false xor false result");
+  Put_Line(result);
+
+  result := a and then b;
+  Put_Line("And Then result");
+  Put_Line(result);
+  
+  result := a or else b;
+  Put_Line("Or Else result");
+  Put_Line(result);
+end Main;

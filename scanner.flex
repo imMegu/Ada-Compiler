@@ -40,6 +40,12 @@ int yyline = 1;
 "elsif" { return ELSIF; }
 "loop"  { return LOOP; }
 "end"   { return END; }
+"and"      { return AND; }
+"or"       { return OR; }
+"and then" { return AND_THEN; }
+"or else"  { return OR_ELSE; }
+"not"      { return NOT; }
+"xor"      { return XOR; }
 
 "procedure" { return PROCEDURE; }
 "begin"     { return BEG;}

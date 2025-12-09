@@ -21,7 +21,7 @@ str_0: .asciiz "Sum:"
 .globl main
 main:
     move $fp, $sp
-    subu $sp, $sp, 256
+    subu $sp, $sp, 252
     li $t0, 15
     sw $t0, -4($fp)
     lw $t0, -4($fp)
@@ -220,4 +220,152 @@ L8:
     add $t2, $t0, $t1
     sw $t2, -160($fp)
     lw $t0, -160($fp)
-    sw 
+    sw $t0, -96($fp)
+    j L5
+L6:
+    la $a0, str_9
+    li $v0, 4
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    li $v0, 5
+    syscall
+    sw $v0, -8($fp)
+    li $t0, 0
+    sw $t0, -164($fp)
+    lw $t0, -8($fp)
+    lw $t1, -164($fp)
+    slt $t2, $t0, $t1
+    sw $t2, -168($fp)
+    lw $t0, -168($fp)
+    beqz $t0, L9
+    la $a0, str_10
+    li $v0, 4
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    li $t0, 0
+    sw $t0, -176($fp)
+    lw $t0, -176($fp)
+    lw $t1, -8($fp)
+    sub $t2, $t0, $t1
+    sw $t2, -180($fp)
+    lw $t0, -180($fp)
+    sw $t0, -8($fp)
+    j L10
+L9:
+    li $t0, 0
+    sw $t0, -188($fp)
+    lw $t0, -8($fp)
+    lw $t1, -188($fp)
+    seq $t2, $t0, $t1
+    sw $t2, -192($fp)
+    lw $t0, -192($fp)
+    beqz $t0, L11
+    la $a0, str_11
+    li $v0, 4
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    j L12
+L11:
+    la $a0, str_12
+    li $v0, 4
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+L12:
+L10:
+    la $a0, str_13
+    li $v0, 4
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    lw $a0, -8($fp)
+    li $v0, 1
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    lw $t0, -8($fp)
+    lw $t1, -16($fp)
+    add $t2, $t0, $t1
+    sw $t2, -204($fp)
+    li $t0, 2
+    sw $t0, -208($fp)
+    lw $t0, -204($fp)
+    lw $t1, -208($fp)
+    mul $t2, $t0, $t1
+    sw $t2, -212($fp)
+    li $t0, 2
+    sw $t0, -216($fp)
+    lw $t0, -8($fp)
+    lw $t1, -216($fp)
+    div $t2, $t0, $t1
+    sw $t2, -220($fp)
+    lw $t0, -212($fp)
+    lw $t1, -220($fp)
+    sub $t2, $t0, $t1
+    sw $t2, -224($fp)
+    lw $t0, -224($fp)
+    sw $t0, -40($fp)
+    la $a0, str_14
+    li $v0, 4
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    lw $a0, -40($fp)
+    li $v0, 1
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    li $t0, 5
+    sw $t0, -228($fp)
+    lw $t0, -228($fp)
+    sw $t0, -96($fp)
+    la $a0, str_15
+    li $v0, 4
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+L13:
+    li $t0, 0
+    sw $t0, -236($fp)
+    lw $t0, -96($fp)
+    lw $t1, -236($fp)
+    sgt $t2, $t0, $t1
+    sw $t2, -240($fp)
+    lw $t0, -240($fp)
+    beqz $t0, L14
+    lw $a0, -96($fp)
+    li $v0, 1
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    li $t0, 1
+    sw $t0, -248($fp)
+    lw $t0, -96($fp)
+    lw $t1, -248($fp)
+    sub $t2, $t0, $t1
+    sw $t2, -252($fp)
+    lw $t0, -252($fp)
+    sw $t0, -96($fp)
+    j L13
+L14:
+    la $a0, str_16
+    li $v0, 4
+    syscall
+    li $v0, 4
+    la $a0, newline
+    syscall
+    li $v0, 10
+    syscall

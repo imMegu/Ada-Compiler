@@ -113,6 +113,8 @@ Expr *ast_operation(int op, Expr *left, Expr *right);
 
 Expr *ast_binary(int op, Expr *left, Expr *right);
 
+Expr *ast_unary(int op, Expr *value);
+
 Expr *ast_assignment(char *id, Expr *value);
 
 Expr *ast_parenthesis(Expr *value);

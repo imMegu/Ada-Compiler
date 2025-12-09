@@ -34,7 +34,7 @@ Expr *ast_string(char *string) {
   Expr *node = (Expr *)malloc(sizeof(Expr));
 
   node->kind = E_STRING;
-  node->type = TYPE_STRING; 
+  node->type = TYPE_STRING;
 
   int strLen = strlen(string);
   int newLen = strLen - 2; // O comprimento da string sem aspas
@@ -47,7 +47,7 @@ Expr *ast_string(char *string) {
 
   node->attr.id = finalid;
 
-  free(string); 
+  free(string);
 
   return node;
 }
@@ -79,6 +79,17 @@ Expr *ast_binary(int op, Expr *left, Expr *right) {
   node->attr.op.op = op;
   node->attr.op.left = left;
   node->attr.op.right = right;
+
+  return node;
+}
+
+Expr *ast_unary(int op, Expr *value) {
+  Expr *node = (Expr *)malloc(sizeof(Expr));
+
+  node->kind = E_OPERATION;
+  node->attr.op.op = op;
+  node->attr.op.left = value;
+  node->attr.op.right = NULL; // NULL indicates unary
 
   return node;
 }
@@ -166,19 +177,20 @@ Command *ast_put_line(Expr *expr) {
 
 Command *ast_get_line(char *id) {
   Command *nCmd = malloc(sizeof(Command));
-  
-  if (!nCmd) exit(EXIT_FAILURE); // Boa prática: verificar malloc
-  
+
+  if (!nCmd)
+    exit(EXIT_FAILURE); // Boa prática: verificar malloc
+
   nCmd->command = GET_LINE_CMD;
-  
+
   // CORREÇÃO CRÍTICA: Faz a cópia profunda do nome da variável
   nCmd->attr.getLine.id = strdup(id);
-  
+
   if (!nCmd->attr.getLine.id) {
-      // Se strdup falhar, liberta o nó e sai
-      free(nCmd);
-      exit(EXIT_FAILURE);
+    // Se strdup falhar, liberta o nó e sai
+    free(nCmd);
+    exit(EXIT_FAILURE);
   }
-  
+
   return nCmd;
 }

@@ -1,0 +1,61 @@
+procedure Main is
+  x, y : Integer;
+  a, b, result : Boolean;
+begin
+  # Test basic boolean values
+  a := true;
+  b := false;
+  
+  # Test NOT operator
+  result := not a;
+  Put_Line(result);
+  
+  result := not b;
+  Put_Line(result);
+  
+  # Test AND operator
+  result := a and b;
+  Put_Line(result);
+  
+  result := a and a;
+  Put_Line(result);
+  
+  # Test OR operator
+  result := a or b;
+  Put_Line(result);
+  
+  result := b or b;
+  Put_Line(result);
+  
+  # Test XOR operator
+  result := a xor b;
+  Put_Line(result);
+  
+  result := a xor a;
+  Put_Line(result);
+  
+  # Test with comparisons
+  x := 10;
+  y := 20;
+  
+  result := (x < y) and (y > 5);
+  Put_Line(result);
+  
+  result := (x > y) or (x < 15);
+  Put_Line(result);
+  
+  # Test NOT with comparison
+  result := not (x = y);
+  Put_Line(result);
+  
+  # Test complex expression
+  result := (x < y) and (not b) or (a xor b);
+  Put_Line(result);
+  
+  # Test short-circuit operators (behavior same as regular in your interpreter)
+  result := a and then b;
+  Put_Line(result);
+  
+  result := a or else b;
+  Put_Line(result);
+end Main;

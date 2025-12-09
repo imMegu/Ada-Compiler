@@ -92,6 +92,12 @@ char* tac_expr(Expr *e, TAC **code) {
             case LE: op = TAC_LE; break;
             case GT: op = TAC_GT; break;
             case GE: op = TAC_GE; break;
+            case AND: op = TAC_AND; break;
+            case OR: op = TAC_OR; break;
+            case XOR: op = TAC_XOR; break;
+            case AND_THEN: op = TAC_AND_THEN; break;
+            case OR_ELSE: op = TAC_OR_ELSE; break;
+            case NOT: op = TAC_NOT; break;
             default: break;
         }
 
@@ -222,6 +228,12 @@ void tac_dump(TAC *tac) {
             case TAC_PRINT_INT: printf("print_int %s\n", tac->arg1); break;
             case TAC_PRINT_STR: printf("print_str %s\n", tac->arg1); break;
             case TAC_READ: printf("read %s\n", tac->arg1); break;
+            case TAC_AND: printf("%s = %s AND %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_OR: printf("%s = %s OR %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_XOR: printf("%s = %s XOR %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_NOT: printf("%s = NOT %s\n", tac->result, tac->arg1); break;
+            case TAC_AND_THEN: printf("%s = %s AND_THEN %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_OR_ELSE: printf("%s = %s OR_ELSE %s\n", tac->result, tac->arg1, tac->arg2); break;
             default: printf("Unknown TAC op\n"); break;
         }
         tac = tac->next;

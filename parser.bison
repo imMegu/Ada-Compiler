@@ -21,6 +21,12 @@
   SEMICOLON
   LPAREN 
   RPAREN
+  AND
+  AND_THEN
+  OR
+  OR_ELSE
+  NOT
+  XOR
 %token 
   ID // For identifiers/variables
   PROCEDURE IS MAIN COLON COMMA BEG
@@ -31,6 +37,9 @@
 %left EQ NE LT GT LE GE
 %left PLUS MINUS 
 %left MULT DIV MOD
+%left OR OR_ELSE XOR
+%left AND AND_THEN
+%right NOT
 
 // Root-level grammar symbol
 %start program;
@@ -371,7 +380,7 @@ expr GT expr {
     $$->type = TYPE_BOOLEAN;
   }
   |
-expr NE expr {
+  expr NE expr {
     if ($1->type != $3->type) {
         semantic_error("Type Mismatch: Cannot compare operands of different types for '/=' operation.");
         exit(1);
@@ -408,6 +417,60 @@ expr NE expr {
   |
   LPAREN expr RPAREN {
     $$ = $2;
+  }
+  |
+  expr AND expr {
+    if ($1->type != TYPE_BOOLEAN || $3->type != TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: 'and' requires Boolean operands.");
+        exit(1);
+    }
+    $$ = ast_binary(AND, $1, $3);
+    $$->type = TYPE_BOOLEAN;
+  }
+  |
+  expr AND_THEN expr {
+    if ($1->type != TYPE_BOOLEAN || $3->type != TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: 'and then' requires Boolean operands.");
+        exit(1);
+    }
+    $$ = ast_binary(AND_THEN, $1, $3);
+    $$->type = TYPE_BOOLEAN;
+  }
+  |
+  expr OR expr {
+    if ($1->type != TYPE_BOOLEAN || $3->type != TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: 'or' requires Boolean operands.");
+        exit(1);
+    }
+    $$ = ast_binary(OR, $1, $3);
+    $$->type = TYPE_BOOLEAN;
+  }
+  |
+  expr OR_ELSE expr {
+    if ($1->type != TYPE_BOOLEAN || $3->type != TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: 'or else' requires Boolean operands.");
+        exit(1);
+    }
+    $$ = ast_binary(OR_ELSE, $1, $3);
+    $$->type = TYPE_BOOLEAN;
+  }
+  |
+  expr XOR expr {
+    if ($1->type != TYPE_BOOLEAN || $3->type != TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: 'xor' requires Boolean operands.");
+        exit(1);
+    }
+    $$ = ast_binary(XOR, $1, $3);
+    $$->type = TYPE_BOOLEAN;
+  }
+  |
+  NOT expr {
+    if ($2->type != TYPE_BOOLEAN) {
+        semantic_error("Type Mismatch: 'not' requires Boolean operand.");
+        exit(1);
+    }
+    $$ = ast_unary(NOT, $2);
+    $$->type = TYPE_BOOLEAN;
   }
   ;
 %%
