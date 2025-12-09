@@ -166,7 +166,19 @@ Command *ast_put_line(Expr *expr) {
 
 Command *ast_get_line(char *id) {
   Command *nCmd = malloc(sizeof(Command));
+  
+  if (!nCmd) exit(EXIT_FAILURE); // Boa prática: verificar malloc
+  
   nCmd->command = GET_LINE_CMD;
-  nCmd->attr.getLine.id = id;
+  
+  // CORREÇÃO CRÍTICA: Faz a cópia profunda do nome da variável
+  nCmd->attr.getLine.id = strdup(id);
+  
+  if (!nCmd->attr.getLine.id) {
+      // Se strdup falhar, liberta o nó e sai
+      free(nCmd);
+      exit(EXIT_FAILURE);
+  }
+  
   return nCmd;
 }

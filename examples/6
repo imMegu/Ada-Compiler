@@ -1,31 +1,12 @@
-# Last Fib
-
 procedure Main is
-   N, A, B, C, I : Integer;
+    a : Integer;
+    b : Integer;
+    c : Integer;
+    resultado : Integer;
 begin
-  N := 46;
-  A := 0;
-  B := 1;
-  I := 2;
-  C := 0;
-
-  if (N > 1) then
-    while (I <= N) loop
-        C := A + B;
-        A := B;
-        B := C;
-        I := I + 1;
-    end loop;
-  elsif (N = 1) then 
-    B := 1;
-  else
-    B := 0;
-  end if;
-
-  Put_Line("Should be 1836311903");
-  Put_Line(B);
-  Put_Line("2^31 is    2147483648");
-  Put_Line("Fib(47) is 2971215073");
-  Put_Line("=>This is the largest we can compute due to (signed) integer limits.");
-
+    Get_Line(a);
+    Get_Line(b);
+    Get_Line(c);
+    resultado := (a + b) * c - 10;
+    Put_Line(resultado);
 end Main;

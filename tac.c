@@ -25,7 +25,7 @@ TAC* tac_create(TACOp op, char *result, char *arg1, char *arg2) {
     TAC *t = (TAC*)malloc(sizeof(TAC));
     t->op = op;
     t->result = result ? strdup(result) : NULL;
-    t->arg1 = arg1 ? strdup(arg1) : NULL;
+    t->arg1 = arg1 ? strdup(arg1) : NULL; // <<< ESTA CÓPIA É VITAL
     t->arg2 = arg2 ? strdup(arg2) : NULL;
     t->next = NULL;
     t->prev = NULL;
@@ -185,10 +185,11 @@ TAC* tac_cmd(Command *cmd) {
             }
             break;
         }
-        case GET_LINE_CMD: {
-            code = tac_join(code, tac_create(TAC_READ, cmd->attr.getLine.id, NULL, NULL));
-            break;
-        }
+    case GET_LINE_CMD: {
+        // CORREÇÃO: Passar o ID como o argumento arg1 (terceiro parâmetro)
+        code = tac_join(code, tac_create(TAC_READ, NULL, cmd->attr.getLine.id, NULL));
+        break;
+    }
         default: break;
     }
     return code;
