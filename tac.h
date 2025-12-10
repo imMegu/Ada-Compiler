@@ -44,6 +44,7 @@ TAC *tac_create(TACOp op, char *result, char *arg1, char *arg2);
 TAC *tac_join(TAC *l1, TAC *l2);
 TAC *generate_code(Command *root);
 
-void tac_dump(TAC *tac);
+
+void tac_dump(TAC *tac, const char *filename);
 
 #endif

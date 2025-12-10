@@ -1,12 +1,18 @@
 procedure Main is
-    a : Integer;
-    b : Integer;
-    c : Integer;
+    x : Integer;
+    y : Integer;
     resultado : Integer;
 begin
-    Get_Line(a);
-    Get_Line(b);
-    Get_Line(c);
-    resultado := (a + b) * c - 10;
+    Get_Line(x);
+    Get_Line(y);
+    if x > 0 then
+        if y > 0 then
+            resultado := x + y;
+        else
+            resultado := x - y;
+        end if;
+    else
+        resultado := 0;
+    end if;
     Put_Line(resultado);
 end Main;

@@ -206,37 +206,64 @@ TAC* generate_code(Command *root) {
     return tac_cmd(root);
 }
 
-void tac_dump(TAC *tac) {
-    printf("\n--- Intermediate Code (TAC) ---\n");
+// Função tac_dump modificada para escrever num ficheiro
+void tac_dump(TAC *tac, const char *filename) {
+    // 1. Abrir o ficheiro para escrita ("w" de write)
+    FILE *f = fopen(filename, "w");
+    
+    // 2. Verificar se a abertura do ficheiro foi bem-sucedida
+    if (!f) {
+        perror("Erro ao abrir ficheiro para dump do TAC");
+        return;
+    }
+    
+// 3. Usar fprintf para escrever no ficheiro (f) em vez de printf
+    fprintf(f, "\n--- Intermediate Code (TAC) ---\n");
     while(tac) {
         switch(tac->op) {
-            case TAC_ADD: printf("%s = %s + %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_SUB: printf("%s = %s - %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_MUL: printf("%s = %s * %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_DIV: printf("%s = %s / %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_MOD: printf("%s = %s %% %s\n", tac->result, tac->arg1, tac->arg2); break; // Modulo
-            case TAC_EQ:  printf("%s = %s == %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_NE:  printf("%s = %s != %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_LT:  printf("%s = %s < %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_GT:  printf("%s = %s > %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_LE:  printf("%s = %s <= %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_GE:  printf("%s = %s >= %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_MOV: printf("%s = %s\n", tac->result, tac->arg1); break;
-            case TAC_LABEL: printf("%s:\n", tac->result); break;
-            case TAC_JMP: printf("goto %s\n", tac->result); break;
-            case TAC_IFZ: printf("ifz %s goto %s\n", tac->arg1, tac->result); break;
-            case TAC_PRINT_INT: printf("print_int %s\n", tac->arg1); break;
-            case TAC_PRINT_STR: printf("print_str %s\n", tac->arg1); break;
-            case TAC_READ: printf("read %s\n", tac->arg1); break;
-            case TAC_AND: printf("%s = %s AND %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_OR: printf("%s = %s OR %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_XOR: printf("%s = %s XOR %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_NOT: printf("%s = NOT %s\n", tac->result, tac->arg1); break;
-            case TAC_AND_THEN: printf("%s = %s AND_THEN %s\n", tac->result, tac->arg1, tac->arg2); break;
-            case TAC_OR_ELSE: printf("%s = %s OR_ELSE %s\n", tac->result, tac->arg1, tac->arg2); break;
-            default: printf("Unknown TAC op\n"); break;
+            // Alterar o operador de atribuição de '=' para ':=', incluindo operadores relacionais e lógicos
+            case TAC_ADD: fprintf(f, "%s := %s + %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_SUB: fprintf(f, "%s := %s - %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_MUL: fprintf(f, "%s := %s * %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_DIV: fprintf(f, "%s := %s / %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_MOD: fprintf(f, "%s := %s %% %s\n", tac->result, tac->arg1, tac->arg2); break; 
+            case TAC_EQ:  fprintf(f, "%s := %s == %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_NE:  fprintf(f, "%s := %s != %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_LT:  fprintf(f, "%s := %s < %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_GT:  fprintf(f, "%s := %s > %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_LE:  fprintf(f, "%s := %s <= %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_GE:  fprintf(f, "%s := %s >= %s\n", tac->result, tac->arg1, tac->arg2); break;
+            
+            // Alterar a atribuição simples de '=' para ':='
+            case TAC_MOV: fprintf(f, "%s := %s\n", tac->result, tac->arg1); break;
+            
+            // Alterar rótulo de 'L0:' para 'LABEL L0:'
+            case TAC_LABEL: fprintf(f, "LABEL %s:\n", tac->result); break;
+            
+            // Alterar salto incondicional de 'goto L0' para 'GOTO L0'
+            case TAC_JMP: fprintf(f, "GOTO %s\n", tac->result); break;
+            
+            // Alterar salto condicional de 'ifz' para 'IF ... GOTO'
+            // O TAC_IFZ (if zero) salta se a condição (arg1) for 0 (False).
+            case TAC_IFZ: fprintf(f, "IF %s = 0 GOTO %s\n", tac->arg1, tac->result); break;
+            
+            // Funções de I/O
+            case TAC_PRINT_INT: fprintf(f, "print_int %s\n", tac->arg1); break;
+            case TAC_PRINT_STR: fprintf(f, "print_str %s\n", tac->arg1); break;
+            case TAC_READ: fprintf(f, "read %s\n", tac->arg1); break;
+            
+            // Alterar os operadores lógicos de '=' para ':='
+            case TAC_AND: fprintf(f, "%s := %s AND %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_OR: fprintf(f, "%s := %s OR %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_XOR: fprintf(f, "%s := %s XOR %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_NOT: fprintf(f, "%s := NOT %s\n", tac->result, tac->arg1); break;
+            case TAC_AND_THEN: fprintf(f, "%s := %s AND_THEN %s\n", tac->result, tac->arg1, tac->arg2); break;
+            case TAC_OR_ELSE: fprintf(f, "%s := %s OR_ELSE %s\n", tac->result, tac->arg1, tac->arg2); break;
+            default: fprintf(f, "Unknown TAC op\n"); break;
         }
         tac = tac->next;
     }
-    printf("--- End of TAC ---\n\n");
+    fprintf(f, "--- End of TAC ---\n\n");
+    
+    fclose(f);
 }

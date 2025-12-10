@@ -36,10 +36,8 @@ int main(int argc, char **argv) {
         
         // GERA TAC 
         TAC *code = generate_code(root);
-        
-        //IMPRIME NO TERMINAL
-        // Lista de instruções no ecrã para verificação
-        tac_dump(code); 
+        // Alteração sugerida para gravar na pasta 'tac_output'
+        tac_dump(code, "tac_output/output.tac.txt");
 
         // GERA MIPS PARA FICHEIRO
         FILE *fout = fopen(out_filename, "w");
